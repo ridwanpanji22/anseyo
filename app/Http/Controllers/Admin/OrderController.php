@@ -13,11 +13,43 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $orders = Order::with(['table', 'orderItems.menu'])
-            ->latest()
-            ->paginate(15);
+        $query = Order::with(['table', 'orderItems.menu']);
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                  ->orWhere('customer_name', 'like', "%{$search}%")
+                  ->orWhere('customer_phone', 'like', "%{$search}%")
+                  ->orWhereHas('table', function($tableQuery) use ($search) {
+                      $tableQuery->where('number', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Date range filter
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Payment status filter
+        if ($request->filled('payment_status')) {
+            $query->where('payment_status', $request->payment_status);
+        }
+
+        $orders = $query->latest()->paginate(15)->withQueryString();
             
         return view('admin.orders.index', compact('orders'));
     }

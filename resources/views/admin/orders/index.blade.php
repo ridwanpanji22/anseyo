@@ -13,27 +13,97 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card-header">
                 <h4>Daftar Pesanan</h4>
-                <div class="d-flex gap-2">
-                    <select class="form-select form-select-sm" id="statusFilter" style="width: auto;">
-                        <option value="">Semua Status</option>
-                        <option value="pending">Pending</option>
-                        <option value="preparing">Menyiapkan</option>
-                        <option value="ready">Siap</option>
-                        <option value="served">Disajikan</option>
-                        <option value="completed">Selesai</option>
-                        <option value="cancelled">Dibatalkan</option>
-                    </select>
-                    <select class="form-select form-select-sm" id="paymentFilter" style="width: auto;">
-                        <option value="">Semua Pembayaran</option>
-                        <option value="unpaid">Belum Bayar</option>
-                        <option value="partial">Bayar Sebagian</option>
-                        <option value="paid">Lunas</option>
-                    </select>
-                </div>
             </div>
             <div class="card-body">
+                <!-- Search and Filter Form -->
+                <form method="GET" action="{{ route('admin.orders.index') }}" class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" 
+                                       class="form-control" 
+                                       name="search" 
+                                       value="{{ request('search') }}" 
+                                       placeholder="Cari no. pesanan, meja, atau pemesan...">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" name="status">
+                                <option value="">Semua Status</option>
+                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="preparing" {{ request('status') == 'preparing' ? 'selected' : '' }}>Menyiapkan</option>
+                                <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Siap</option>
+                                <option value="served" {{ request('status') == 'served' ? 'selected' : '' }}>Disajikan</option>
+                                <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Selesai</option>
+                                <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Dibatalkan</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" name="payment_status">
+                                <option value="">Semua Pembayaran</option>
+                                <option value="unpaid" {{ request('payment_status') == 'unpaid' ? 'selected' : '' }}>Belum Bayar</option>
+                                <option value="partial" {{ request('payment_status') == 'partial' ? 'selected' : '' }}>Bayar Sebagian</option>
+                                <option value="paid" {{ request('payment_status') == 'paid' ? 'selected' : '' }}>Lunas</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Cari
+                            </button>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary w-100">
+                                <i class="bi bi-arrow-clockwise"></i> Reset
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced Filters -->
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-2">
+                            <label class="form-label small">Dari Tanggal:</label>
+                            <input type="date" 
+                                   class="form-control form-control-sm" 
+                                   name="date_from" 
+                                   value="{{ request('date_from') }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">Sampai Tanggal:</label>
+                            <input type="date" 
+                                   class="form-control form-control-sm" 
+                                   name="date_to" 
+                                   value="{{ request('date_to') }}">
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Search Results Info -->
+                @if(request('search') || request('status') || request('payment_status') || request('date_from') || request('date_to'))
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Hasil Pencarian:</strong>
+                        @if(request('search'))
+                            <span class="badge bg-primary me-2">Kata kunci: "{{ request('search') }}"</span>
+                        @endif
+                        @if(request('status'))
+                            <span class="badge bg-warning me-2">Status: {{ ucfirst(request('status')) }}</span>
+                        @endif
+                        @if(request('payment_status'))
+                            <span class="badge bg-info me-2">Pembayaran: {{ ucfirst(request('payment_status')) }}</span>
+                        @endif
+                        @if(request('date_from') || request('date_to'))
+                            <span class="badge bg-secondary me-2">
+                                Periode: {{ request('date_from', 'Semua') }} - {{ request('date_to', 'Semua') }}
+                            </span>
+                        @endif
+                        <span class="badge bg-success">{{ $orders->total() }} pesanan ditemukan</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
                 @if(session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         {{ session('success') }}
@@ -216,40 +286,26 @@
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Status filter
-    document.getElementById('statusFilter').addEventListener('change', function() {
-        const status = this.value;
-        const rows = document.querySelectorAll('#ordersTable tbody tr');
-        
-        rows.forEach(row => {
-            const statusCell = row.querySelector('td:nth-child(6) .badge');
-            if (status === '' || statusCell.textContent.toLowerCase().includes(status)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-    });
-
-    // Payment filter
-    document.getElementById('paymentFilter').addEventListener('change', function() {
-        const payment = this.value;
-        const rows = document.querySelectorAll('#ordersTable tbody tr');
-        
-        rows.forEach(row => {
-            const paymentCell = row.querySelector('td:nth-child(7) .badge');
-            if (payment === '' || paymentCell.textContent.toLowerCase().includes(payment)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-    });
-
-    // Auto refresh every 30 seconds
+    // Auto refresh every 30 seconds (only if no search/filter is active)
+    @if(!request('search') && !request('status') && !request('payment_status') && !request('date_from') && !request('date_to'))
     setInterval(function() {
         location.reload();
     }, 30000);
+    @endif
+
+    // Highlight search terms in table
+    @if(request('search'))
+    const searchTerm = '{{ request('search') }}';
+    const tableCells = document.querySelectorAll('#ordersTable tbody td');
+    
+    tableCells.forEach(cell => {
+        const text = cell.textContent;
+        if (text.toLowerCase().includes(searchTerm.toLowerCase())) {
+            cell.style.backgroundColor = '#fff3cd';
+            cell.style.fontWeight = 'bold';
+        }
+    });
+    @endif
 });
 </script>
 @endpush 
