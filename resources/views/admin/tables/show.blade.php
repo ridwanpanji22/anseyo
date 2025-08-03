@@ -107,6 +107,62 @@
     </div>
     
     <div class="col-12 col-lg-4">
+        <!-- Active Orders Card -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h4>Pesanan Aktif</h4>
+            </div>
+            <div class="card-body">
+                @php
+                    $activeOrders = $table->orders()->whereIn('status', ['pending', 'preparing', 'ready', 'served'])->get();
+                @endphp
+                
+                @if($activeOrders->count() > 0)
+                    <div class="list-group list-group-flush">
+                        @foreach($activeOrders as $order)
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ $order->order_number }}</h6>
+                                    @if($order->customer_name)
+                                        <small class="text-muted">{{ $order->customer_name }}</small><br>
+                                    @endif
+                                    <small class="text-muted">{{ $order->created_at->format('d/m/Y H:i') }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-primary">Rp {{ number_format($order->total) }}</span>
+                                    <br>
+                                    <small class="text-muted">
+                                        @switch($order->status)
+                                            @case('pending')
+                                                <span class="text-warning">Menunggu</span>
+                                                @break
+                                            @case('preparing')
+                                                <span class="text-info">Disiapkan</span>
+                                                @break
+                                            @case('ready')
+                                                <span class="text-success">Siap</span>
+                                                @break
+                                            @case('served')
+                                                <span class="text-primary">Disajikan</span>
+                                                @break
+                                        @endswitch
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-3">
+                        <i class="bi bi-check-circle fs-1 text-success"></i>
+                        <p class="mt-2 text-muted">Tidak ada pesanan aktif</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Recent Orders Card -->
         <div class="card">
             <div class="card-header">
                 <h4>Pesanan Terbaru</h4>

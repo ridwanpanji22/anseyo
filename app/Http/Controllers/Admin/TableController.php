@@ -123,7 +123,7 @@ class TableController extends Controller
     public function generateQrCode(Table $table)
     {
         $baseUrl = config('app.qr_base_url');
-        $qrCodeUrl = $baseUrl . '/order/create?table=' . urlencode($table->number);
+        $qrCodeUrl = $baseUrl . '/order/' . $table->id . '/create';
         
         return view('admin.tables.qr-code', compact('table', 'qrCodeUrl'));
     }

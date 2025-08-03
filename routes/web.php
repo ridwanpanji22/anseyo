@@ -55,7 +55,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
 // Public Order Routes
 Route::prefix('order')->name('order.')->group(function () {
-    Route::get('/create', [\App\Http\Controllers\OrderController::class, 'create'])->name('create');
-    Route::post('/store', [\App\Http\Controllers\OrderController::class, 'store'])->name('store');
+    Route::get('/{table}/create', [\App\Http\Controllers\OrderController::class, 'create'])->name('create');
+    Route::post('/{table}/store', [\App\Http\Controllers\OrderController::class, 'store'])->name('store');
     Route::get('/{order}/show', [\App\Http\Controllers\OrderController::class, 'show'])->name('show');
 });

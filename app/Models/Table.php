@@ -52,7 +52,8 @@ class Table extends Model
      */
     public function generateQrCode(): string
     {
-        $url = route('order.create', ['table' => $this->number]);
+        $baseUrl = config('app.qr_base_url', url('/'));
+        $url = $baseUrl . '/order/' . $this->id . '/create';
         return $url;
     }
 }

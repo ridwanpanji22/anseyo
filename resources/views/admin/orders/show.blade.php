@@ -44,7 +44,20 @@
                             </tr>
                             <tr>
                                 <td>Meja:</td>
-                                <td><span class="badge bg-primary">{{ $order->table->name ?? 'N/A' }}</span></td>
+                                <td><span class="badge bg-primary">{{ $order->table->number ?? 'N/A' }}</span></td>
+                            </tr>
+                            <tr>
+                                <td>Pemesan:</td>
+                                <td>
+                                    @if($order->customer_name)
+                                        <strong>{{ $order->customer_name }}</strong>
+                                        @if($order->customer_phone)
+                                            <br><small class="text-muted">{{ $order->customer_phone }}</small>
+                                        @endif
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                             </tr>
                             <tr>
                                 <td>Waktu Pesanan:</td>
@@ -154,25 +167,18 @@
                         <tbody>
                             @foreach($order->orderItems as $item)
                             <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        @if($item->menu->image)
-                                            <img src="{{ asset('storage/' . $item->menu->image) }}" 
-                                                 alt="{{ $item->menu->name }}" 
-                                                 class="rounded me-2" 
-                                                 style="width: 40px; height: 40px; object-fit: cover;">
-                                        @else
-                                            <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" 
-                                                 style="width: 40px; height: 40px;">
-                                                <i class="bi bi-image text-muted"></i>
-                                            </div>
-                                        @endif
-                                        <div>
-                                            <strong>{{ $item->menu->name }}</strong>
-                                            @if($item->notes)
-                                                <br><small class="text-muted">{{ $item->notes }}</small>
-                                            @endif
-                                        </div>
+                                                                 <td>
+                                     <div class="d-flex align-items-center">
+                                         <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" 
+                                              style="width: 40px; height: 40px;">
+                                             <i class="bi bi-utensils text-muted"></i>
+                                         </div>
+                                                                                 <div>
+                                             <strong>{{ $item->menu_name }}</strong>
+                                             @if($item->notes)
+                                                 <br><small class="text-muted">{{ $item->notes }}</small>
+                                             @endif
+                                         </div>
                                     </div>
                                 </td>
                                 <td>Rp {{ number_format($item->price, 0, ',', '.') }}</td>

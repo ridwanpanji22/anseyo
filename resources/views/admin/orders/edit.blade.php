@@ -60,10 +60,36 @@
                                 <select class="form-select" id="table_id" name="table_id" required>
                                     @foreach(\App\Models\Table::all() as $table)
                                         <option value="{{ $table->id }}" {{ $order->table_id == $table->id ? 'selected' : '' }}>
-                                            {{ $table->name }}
+                                            {{ $table->number }}
                                         </option>
                                     @endforeach
                                 </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Pemesan</label>
+                                <div class="form-control-plaintext">
+                                    @if($order->customer_name)
+                                        <strong>{{ $order->customer_name }}</strong>
+                                        @if($order->customer_phone)
+                                            <br><small class="text-muted">{{ $order->customer_phone }}</small>
+                                        @endif
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Waktu Pesanan</label>
+                                <div class="form-control-plaintext">
+                                    {{ $order->created_at->format('d/m/Y H:i') }}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -147,10 +173,10 @@
             <div class="card-body">
                 @foreach($order->orderItems as $item)
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div>
-                        <strong>{{ $item->menu->name }}</strong>
-                        <br><small class="text-muted">{{ $item->quantity }}x @ Rp {{ number_format($item->price, 0, ',', '.') }}</small>
-                    </div>
+                                         <div>
+                         <strong>{{ $item->menu_name }}</strong>
+                         <br><small class="text-muted">{{ $item->quantity }}x @ Rp {{ number_format($item->price, 0, ',', '.') }}</small>
+                     </div>
                     <div class="text-end">
                         <strong>Rp {{ number_format($item->price * $item->quantity, 0, ',', '.') }}</strong>
                     </div>

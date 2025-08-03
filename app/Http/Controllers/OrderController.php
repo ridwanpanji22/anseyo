@@ -2,72 +2,87 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Table;
 use App\Models\Menu;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Table;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
     /**
-     * Show the order form.
+     * Tampilkan form pemesanan untuk customer
      */
-    public function create(Request $request): View
+    public function create($tableId)
     {
-        $tableNumber = $request->get('table');
-        $table = Table::where('number', $tableNumber)->first();
-        
-        if (!$table) {
-            abort(404, 'Meja tidak ditemukan');
-        }
-
-        $categories = \App\Models\Category::active()
+        $table = Table::where('id', $tableId)
+            ->where('is_active', true)
+            ->firstOrFail();
+            
+        $categories = \App\Models\Category::where('is_active', true)
             ->with(['menus' => function($query) {
-                $query->available()->ordered();
+                $query->where('is_available', true)->orderBy('sort_order');
             }])
-            ->ordered()
+            ->orderBy('sort_order')
             ->get();
-
+            
         return view('order.create', compact('table', 'categories'));
     }
 
     /**
-     * Store the order.
+     * Proses simpan pesanan customer
      */
-    public function store(Request $request)
+    public function store(Request $request, $tableId)
     {
         $request->validate([
-            'table_id' => 'required|exists:tables,id',
             'customer_name' => 'nullable|string|max:255',
             'customer_phone' => 'nullable|string|max:20',
-            'items' => 'required|array|min:1',
+            'items' => 'required|array',
             'items.*.menu_id' => 'required|exists:menus,id',
-            'items.*.quantity' => 'required|integer|min:1|max:10',
-            'items.*.notes' => 'nullable|string|max:255',
+            'items.*.quantity' => 'nullable|integer|min:0|max:10',
             'notes' => 'nullable|string|max:500',
         ]);
 
-        // Check for over order (more than 5 items)
-        $totalItems = collect($request->items)->sum('quantity');
-        if ($totalItems > 5) {
-            return back()->withErrors(['over_order' => 'Pesanan tidak boleh lebih dari 5 item. Total item Anda: ' . $totalItems]);
+        // Filter hanya item yang quantity > 0
+        $selectedItems = collect($request->items)->filter(function($item) {
+            return isset($item['quantity']) && $item['quantity'] > 0;
+        });
+
+        if ($selectedItems->isEmpty()) {
+            return back()->withErrors(['error' => 'Silakan pilih minimal satu menu untuk dipesan.']);
         }
 
-        // Create order
+        $table = Table::findOrFail($tableId);
+        
+        // Cek apakah ada pesanan yang sedang diproses di meja ini
+        $activeOrder = Order::where('table_id', $table->id)
+            ->whereIn('status', ['pending', 'preparing', 'ready'])
+            ->first();
+            
+        if ($activeOrder) {
+            return back()->withErrors(['error' => 'Meja ini masih memiliki pesanan yang sedang diproses.']);
+        }
+
+        // Buat pesanan baru
         $order = Order::create([
-            'order_number' => Order::generateOrderNumber(),
-            'table_id' => $request->table_id,
+            'order_number' => $this->generateOrderNumber(),
+            'table_id' => $table->id,
             'customer_name' => $request->customer_name,
             'customer_phone' => $request->customer_phone,
+            'status' => 'pending',
+            'payment_status' => 'unpaid',
             'notes' => $request->notes,
             'ordered_at' => now(),
         ]);
 
-        // Create order items
-        foreach ($request->items as $item) {
-            $menu = Menu::find($item['menu_id']);
+        $totalItems = 0;
+        $subtotal = 0;
+
+        // Buat item pesanan hanya untuk yang dipilih
+        foreach ($selectedItems as $item) {
+            $menu = Menu::findOrFail($item['menu_id']);
+            $itemSubtotal = $menu->price * $item['quantity'];
             
             OrderItem::create([
                 'order_id' => $order->id,
@@ -75,69 +90,58 @@ class OrderController extends Controller
                 'menu_name' => $menu->name,
                 'price' => $menu->price,
                 'quantity' => $item['quantity'],
-                'subtotal' => $menu->price * $item['quantity'],
-                'notes' => $item['notes'] ?? null,
+                'subtotal' => $itemSubtotal,
+                'status' => 'pending',
             ]);
+            
+            $totalItems += $item['quantity'];
+            $subtotal += $itemSubtotal;
         }
 
-        // Calculate totals
-        $order->calculateTotals();
+        // Update total pesanan
+        $tax = $subtotal * 0.1; // 10% tax
+        $total = $subtotal + $tax;
+        
+        $order->update([
+            'subtotal' => $subtotal,
+            'tax' => $tax,
+            'total' => $total,
+        ]);
 
-        // Update table status
-        $table = Table::find($request->table_id);
+        // Update table status to occupied
         $table->update(['status' => 'occupied']);
 
         return redirect()->route('order.show', $order->id)
-            ->with('success', 'Pesanan berhasil dikirim ke dapur!');
+            ->with('success', 'Pesanan berhasil dikirim! Pesanan Anda sedang diproses.');
     }
 
     /**
-     * Show the order details.
+     * Tampilkan status pesanan
      */
-    public function show(Order $order): View
+    public function show($orderId)
     {
-        $order->load(['table', 'orderItems.menu']);
+        $order = Order::with(['orderItems.menu', 'table'])
+            ->findOrFail($orderId);
+            
         return view('order.show', compact('order'));
     }
 
     /**
-     * Get menu items for AJAX request.
+     * Generate nomor pesanan unik
      */
-    public function getMenuItems(Request $request)
+    private function generateOrderNumber()
     {
-        $categoryId = $request->get('category_id');
+        $prefix = 'ORD';
+        $date = now()->format('Ymd');
+        $lastOrder = Order::whereDate('created_at', today())->latest()->first();
         
-        $menus = Menu::available()
-            ->when($categoryId, function($query) use ($categoryId) {
-                return $query->where('category_id', $categoryId);
-            })
-            ->with('category')
-            ->ordered()
-            ->get();
-
-        return response()->json($menus);
-    }
-
-    /**
-     * Check table availability.
-     */
-    public function checkTable(Request $request)
-    {
-        $tableNumber = $request->get('table');
-        $table = Table::where('number', $tableNumber)->first();
-
-        if (!$table) {
-            return response()->json(['available' => false, 'message' => 'Meja tidak ditemukan']);
+        if ($lastOrder) {
+            $lastNumber = (int) substr($lastOrder->order_number, -4);
+            $newNumber = $lastNumber + 1;
+        } else {
+            $newNumber = 1;
         }
-
-        if (!$table->is_active) {
-            return response()->json(['available' => false, 'message' => 'Meja sedang tidak tersedia']);
-        }
-
-        if ($table->status !== 'available') {
-            return response()->json(['available' => false, 'message' => 'Meja sedang digunakan']);
-        }
-
-        return response()->json(['available' => true, 'table' => $table]);
+        
+        return $prefix . $date . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Table;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -71,6 +72,9 @@ class OrderController extends Controller
 
         $order->update($data);
 
+        // Update table status based on order status
+        $this->updateTableStatus($order);
+
         return redirect()->route('admin.orders.show', $order->id)
             ->with('success', 'Status pesanan berhasil diperbarui');
     }
@@ -103,6 +107,9 @@ class OrderController extends Controller
         }
 
         $order->update($data);
+
+        // Update table status based on order status
+        $this->updateTableStatus($order);
 
         return response()->json([
             'success' => true,
@@ -166,5 +173,30 @@ class OrderController extends Controller
             ->get();
             
         return view('admin.orders.waiter', compact('orders'));
+    }
+
+    /**
+     * Update table status based on order status.
+     */
+    private function updateTableStatus(Order $order)
+    {
+        if (!$order->table) {
+            return;
+        }
+
+        $table = $order->table;
+
+        // Check if there are any active orders for this table
+        $activeOrders = Order::where('table_id', $table->id)
+            ->whereIn('status', ['pending', 'preparing', 'ready', 'served'])
+            ->count();
+
+        if ($activeOrders > 0) {
+            // Table is occupied
+            $table->update(['status' => 'occupied']);
+        } else {
+            // No active orders, table is available
+            $table->update(['status' => 'available']);
+        }
     }
 }

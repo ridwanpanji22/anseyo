@@ -48,6 +48,7 @@
                                 <tr>
                                     <th>No. Pesanan</th>
                                     <th>Meja</th>
+                                    <th>Pemesan</th>
                                     <th>Items</th>
                                     <th>Total</th>
                                     <th>Status</th>
@@ -63,12 +64,22 @@
                                         <strong>#{{ $order->order_number }}</strong>
                                     </td>
                                     <td>
-                                        <span class="badge bg-primary">{{ $order->table->name ?? 'N/A' }}</span>
+                                        <span class="badge bg-primary">{{ $order->table->number ?? 'N/A' }}</span>
+                                    </td>
+                                    <td>
+                                        @if($order->customer_name)
+                                            <strong>{{ $order->customer_name }}</strong>
+                                            @if($order->customer_phone)
+                                                <br><small class="text-muted">{{ $order->customer_phone }}</small>
+                                            @endif
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
                                     </td>
                                     <td>
                                         <small>
                                             @foreach($order->orderItems->take(2) as $item)
-                                                {{ $item->menu->name }} ({{ $item->quantity }}x)<br>
+                                                {{ $item->menu_name }} ({{ $item->quantity }}x)<br>
                                             @endforeach
                                             @if($order->orderItems->count() > 2)
                                                 <span class="text-muted">+{{ $order->orderItems->count() - 2 }} item lainnya</span>
@@ -211,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const rows = document.querySelectorAll('#ordersTable tbody tr');
         
         rows.forEach(row => {
-            const statusCell = row.querySelector('td:nth-child(5) .badge');
+            const statusCell = row.querySelector('td:nth-child(6) .badge');
             if (status === '' || statusCell.textContent.toLowerCase().includes(status)) {
                 row.style.display = '';
             } else {
@@ -226,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const rows = document.querySelectorAll('#ordersTable tbody tr');
         
         rows.forEach(row => {
-            const paymentCell = row.querySelector('td:nth-child(6) .badge');
+            const paymentCell = row.querySelector('td:nth-child(7) .badge');
             if (payment === '' || paymentCell.textContent.toLowerCase().includes(payment)) {
                 row.style.display = '';
             } else {
