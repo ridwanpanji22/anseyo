@@ -4,9 +4,17 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
 
 Route::get('/', function () {
-    if (auth()->check() && auth()->user()->role === 'admin') {
+    // Jika user belum login, arahkan ke login
+    if (!auth()->check()) {
+        return redirect()->route('login');
+    }
+    
+    // Jika user sudah login dan role-nya admin, cashier, kitchen, atau waiter
+    if (in_array(auth()->user()->role, ['admin', 'cashier', 'kitchen', 'waiter'])) {
         return redirect()->route('admin.dashboard');
     }
+    
+    // Jika user sudah login dengan role lain, tampilkan welcome
     return view('welcome');
 });
 

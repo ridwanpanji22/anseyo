@@ -37,7 +37,8 @@ class LoginController extends Controller
     protected function redirectTo()
     {
         if (auth()->check()) {
-            if (auth()->user()->role === 'admin') {
+            // Jika user role-nya admin, cashier, kitchen, atau waiter
+            if (in_array(auth()->user()->role, ['admin', 'cashier', 'kitchen', 'waiter'])) {
                 return route('admin.dashboard');
             }
         }

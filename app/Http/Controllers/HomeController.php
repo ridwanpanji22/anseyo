@@ -23,10 +23,12 @@ class HomeController extends Controller
      */
     public function index()
     {
-        if (auth()->user()->role === 'admin') {
+        // Jika user role-nya admin, cashier, kitchen, atau waiter
+        if (in_array(auth()->user()->role, ['admin', 'cashier', 'kitchen', 'waiter'])) {
             return redirect()->route('admin.dashboard');
         }
         
+        // Jika user role-nya customer atau role lain, tampilkan home
         return view('home');
     }
 }
