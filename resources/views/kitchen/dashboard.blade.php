@@ -150,7 +150,7 @@
 </div>
 @endsection
 
-@push('js')
+@push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Auto refresh every 10 seconds
@@ -202,7 +202,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(() => {
                         updateOrders();
                     }, 1000);
+                } else {
+                    showNotification(data.message || 'Terjadi kesalahan', 'danger');
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Terjadi kesalahan saat mengupdate status', 'danger');
             });
         }
     };
@@ -224,7 +230,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(() => {
                         updateOrders();
                     }, 1000);
+                } else {
+                    showNotification(data.message || 'Terjadi kesalahan', 'danger');
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Terjadi kesalahan saat mengupdate status', 'danger');
             });
         }
     };

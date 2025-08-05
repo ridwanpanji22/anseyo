@@ -67,6 +67,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('/orders/{order}/start-preparing', [\App\Http\Controllers\KitchenController::class, 'startPreparing'])->name('orders.start-preparing');
         Route::post('/orders/{order}/mark-ready', [\App\Http\Controllers\KitchenController::class, 'markReady'])->name('orders.mark-ready');
         Route::get('/orders/by-status', [\App\Http\Controllers\KitchenController::class, 'getOrdersByStatus'])->name('orders.by-status');
+        Route::get('/orders/{order}/show', [\App\Http\Controllers\KitchenController::class, 'showOrder'])->name('orders.show');
     });
 
     // Waiter Dashboard - Allow waiter and admin roles

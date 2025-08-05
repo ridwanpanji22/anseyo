@@ -46,16 +46,26 @@ class KitchenController extends Controller
      */
     public function startPreparing(Order $order)
     {
-        $order->update([
-            'status' => 'preparing',
-            'preparing_at' => now(),
-        ]);
+        try {
+            $order->update([
+                'status' => 'preparing',
+                'preparing_at' => now(),
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Pesanan #' . $order->order_number . ' sedang disiapkan',
-            'order' => $order->fresh(['table', 'orderItems.menu'])
-        ]);
+            // Update table status
+            $this->updateTableStatus($order);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pesanan #' . $order->order_number . ' sedang disiapkan',
+                'order' => $order->fresh(['table', 'orderItems.menu'])
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengupdate status pesanan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -63,16 +73,26 @@ class KitchenController extends Controller
      */
     public function markReady(Order $order)
     {
-        $order->update([
-            'status' => 'ready',
-            'ready_at' => now(),
-        ]);
+        try {
+            $order->update([
+                'status' => 'ready',
+                'ready_at' => now(),
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Pesanan #' . $order->order_number . ' siap disajikan',
-            'order' => $order->fresh(['table', 'orderItems.menu'])
-        ]);
+            // Update table status
+            $this->updateTableStatus($order);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pesanan #' . $order->order_number . ' siap disajikan',
+                'order' => $order->fresh(['table', 'orderItems.menu'])
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengupdate status pesanan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -92,6 +112,16 @@ class KitchenController extends Controller
             'orders' => $orders,
             'html' => view('kitchen.partials.orders-list', compact('orders', 'status'))->render()
         ]);
+    }
+
+    /**
+     * Show order details.
+     */
+    public function showOrder(Order $order): View
+    {
+        $order->load(['table', 'orderItems.menu']);
+        
+        return view('kitchen.orders.show', compact('order'));
     }
 
     /**

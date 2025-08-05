@@ -61,7 +61,7 @@
                     <i class="bi bi-check-lg"></i>
                 </button>
             @endif
-            <a href="{{ route('admin.orders.show', $order->id) }}" 
+            <a href="{{ route('kitchen.orders.show', $order->id) }}" 
                class="btn btn-outline-secondary btn-sm"
                title="Lihat Detail">
                 <i class="bi bi-eye"></i>
