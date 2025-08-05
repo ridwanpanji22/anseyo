@@ -120,9 +120,23 @@
                 <div class="sidebar-header position-relative">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="logo">
-                            <a href="{{ route('admin.dashboard') }}">
-                                <img src="{{ asset('assets/mazer/svg/logo.svg') }}" alt="Logo" srcset="">
-                            </a>
+                            @if(auth()->user()->role == 'admin')
+                                <a href="{{ route('admin.dashboard') }}">
+                                    <img src="{{ asset('assets/mazer/svg/logo.svg') }}" alt="Logo" srcset="">
+                                </a>
+                            @elseif(auth()->user()->role == 'kitchen')
+                                <a href="{{ route('kitchen.dashboard') }}">
+                                    <img src="{{ asset('assets/mazer/svg/logo.svg') }}" alt="Logo" srcset="">
+                                </a>
+                            @elseif(auth()->user()->role == 'waiter')
+                                <a href="{{ route('waiter.dashboard') }}">
+                                    <img src="{{ asset('assets/mazer/svg/logo.svg') }}" alt="Logo" srcset="">
+                                </a>
+                            @elseif(auth()->user()->role == 'cashier')
+                                <a href="{{ route('cashier.dashboard') }}">
+                                    <img src="{{ asset('assets/mazer/svg/logo.svg') }}" alt="Logo" srcset="">
+                                </a>
+                            @endif
                         </div>
                         <div class="theme-toggle d-flex gap-2 align-items-center mt-2">
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--system-uicons" width="20" height="20" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5l1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg>
@@ -141,6 +155,7 @@
                     <ul class="menu">
                         <li class="sidebar-title">Menu</li>
                         
+                        @if(auth()->user()->role == 'admin')
                         <li class="sidebar-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                             <a href="{{ route('admin.dashboard') }}" class='sidebar-link'>
                                 <i class="bi bi-grid-fill"></i>
@@ -167,7 +182,36 @@
                                 <span>Manajemen Pesanan</span>
                             </a>
                         </li>
+                        @endif
                         
+                        @if(auth()->user()->role == 'kitchen' || auth()->user()->role == 'admin')
+                        <li class="sidebar-item {{ request()->routeIs('kitchen.*') ? 'active' : '' }}">
+                            <a href="{{ route('kitchen.dashboard') }}" class='sidebar-link'>
+                                <i class="bi bi-fire"></i>
+                                <span>Dashboard Dapur</span>
+                            </a>
+                        </li>
+                        @endif
+                        
+                        @if(auth()->user()->role == 'waiter' || auth()->user()->role == 'admin')
+                        <li class="sidebar-item {{ request()->routeIs('waiter.*') ? 'active' : '' }}">
+                            <a href="{{ route('waiter.dashboard') }}" class='sidebar-link'>
+                                <i class="bi bi-truck"></i>
+                                <span>Dashboard Waiter</span>
+                            </a>
+                        </li>
+                        @endif
+                        
+                        @if(auth()->user()->role == 'cashier' || auth()->user()->role == 'admin')
+                        <li class="sidebar-item {{ request()->routeIs('cashier.*') ? 'active' : '' }}">
+                            <a href="{{ route('cashier.dashboard') }}" class='sidebar-link'>
+                                <i class="bi bi-cash-coin"></i>
+                                <span>Dashboard Cashier</span>
+                            </a>
+                        </li>
+                        @endif
+                        
+                        @if(auth()->user()->role == 'admin')
                         <li class="sidebar-item {{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
                             <a href="{{ route('admin.staff.index') }}" class='sidebar-link'>
                                 <i class="bi bi-people"></i>
@@ -188,15 +232,18 @@
                                 <span>Manajemen Meja</span>
                             </a>
                         </li>
+                        @endif
                         
                         <li class="sidebar-title">Pengaturan</li>
                         
+                        @if(auth()->user()->role == 'admin')
                         <li class="sidebar-item {{ request()->routeIs('admin.profile.*') ? 'active' : '' }}">
                             <a href="{{ route('admin.profile.edit') }}" class='sidebar-link'>
                                 <i class="bi bi-person"></i>
                                 <span>Profil</span>
                             </a>
                         </li>
+                        @endif
                         
                         <li class="sidebar-item">
                             <form method="POST" action="{{ route('logout') }}" class="d-inline">
@@ -245,11 +292,13 @@
                                     <li>
                                         <h6 class="dropdown-header">Hello, {{ Auth::user()->name }}!</h6>
                                     </li>
+                                    @if(auth()->user()->role == 'admin')
                                     <li>
                                         <a class="dropdown-item" href="{{ route('admin.profile.edit') }}">
                                             <i class="icon-mid bi bi-person me-2"></i> My Profile
                                         </a>
                                     </li>
+                                    @endif
                                     <li>
                                         <hr class="dropdown-divider">
                                     </li>
@@ -280,7 +329,15 @@
                             <div class="col-12 col-md-6 order-md-2 order-first">
                                 <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
                                     <ol class="breadcrumb">
-                                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                                        @if(auth()->user()->role == 'admin')
+                                            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+                                        @elseif(auth()->user()->role == 'kitchen')
+                                            <li class="breadcrumb-item"><a href="{{ route('kitchen.dashboard') }}">Dashboard</a></li>
+                                        @elseif(auth()->user()->role == 'waiter')
+                                            <li class="breadcrumb-item"><a href="{{ route('waiter.dashboard') }}">Dashboard</a></li>
+                                        @elseif(auth()->user()->role == 'cashier')
+                                            <li class="breadcrumb-item"><a href="{{ route('cashier.dashboard') }}">Dashboard</a></li>
+                                        @endif
                                         @yield('breadcrumb')
                                     </ol>
                                 </nav>

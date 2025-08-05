@@ -37,8 +37,16 @@ class LoginController extends Controller
     protected function redirectTo()
     {
         if (auth()->check()) {
-            // Jika user role-nya admin, cashier, kitchen, atau waiter
-            if (in_array(auth()->user()->role, ['admin', 'cashier', 'kitchen', 'waiter'])) {
+            // Redirect berdasarkan role
+            $user = auth()->user();
+            
+            if ($user->role === 'kitchen') {
+                return route('kitchen.dashboard');
+            } elseif ($user->role === 'waiter') {
+                return route('waiter.dashboard');
+            } elseif ($user->role === 'cashier') {
+                return route('cashier.dashboard');
+            } elseif (in_array($user->role, ['admin'])) {
                 return route('admin.dashboard');
             }
         }

@@ -23,8 +23,16 @@ class HomeController extends Controller
      */
     public function index()
     {
-        // Jika user role-nya admin, cashier, kitchen, atau waiter
-        if (in_array(auth()->user()->role, ['admin', 'cashier', 'kitchen', 'waiter'])) {
+        // Redirect berdasarkan role
+        $user = auth()->user();
+        
+        if ($user->role === 'kitchen') {
+            return redirect()->route('kitchen.dashboard');
+        } elseif ($user->role === 'waiter') {
+            return redirect()->route('waiter.dashboard');
+        } elseif ($user->role === 'cashier') {
+            return redirect()->route('cashier.dashboard');
+        } elseif (in_array($user->role, ['admin'])) {
             return redirect()->route('admin.dashboard');
         }
         

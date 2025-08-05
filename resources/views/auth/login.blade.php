@@ -40,8 +40,8 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('login') }}">
-                @csrf
+                    <form method="POST" action="{{ route('login') }}">
+                        @csrf
                 <div class="form-group position-relative has-icon-left mb-4">
                     <input type="email" 
                            class="form-control form-control-xl @error('email') is-invalid @enderror" 
@@ -54,10 +54,10 @@
                     <div class="form-control-icon">
                         <i class="bi bi-envelope"></i>
                     </div>
-                    @error('email')
+                                @error('email')
                         <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
+                                @enderror
+                            </div>
                 <div class="form-group position-relative has-icon-left mb-4">
                     <input type="password" 
                            class="form-control form-control-xl @error('password') is-invalid @enderror" 
@@ -67,11 +67,11 @@
                            autocomplete="current-password">
                     <div class="form-control-icon">
                         <i class="bi bi-shield-lock"></i>
-                    </div>
-                    @error('password')
+                        </div>
+                                @error('password')
                         <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
+                                @enderror
+                            </div>
                 <div class="form-check form-check-lg d-flex align-items-end">
                     <input class="form-check-input me-2" 
                            type="checkbox" 
@@ -80,7 +80,7 @@
                            {{ old('remember') ? 'checked' : '' }}>
                     <label class="form-check-label text-gray-600" for="remember">
                         Keep me logged in
-                    </label>
+                                    </label>
                 </div>
                 <button class="btn btn-primary btn-block btn-lg shadow-lg mt-5" type="submit">
                     Log in
