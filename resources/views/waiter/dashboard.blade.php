@@ -167,7 +167,7 @@
 </div>
 @endsection
 
-@push('js')
+@push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Auto refresh every 10 seconds

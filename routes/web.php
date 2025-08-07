@@ -76,6 +76,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('/orders/{order}/mark-served', [\App\Http\Controllers\WaiterController::class, 'markServed'])->name('orders.mark-served');
         Route::post('/orders/{order}/mark-completed', [\App\Http\Controllers\WaiterController::class, 'markCompleted'])->name('orders.mark-completed');
         Route::get('/orders/by-status', [\App\Http\Controllers\WaiterController::class, 'getOrdersByStatus'])->name('orders.by-status');
+        Route::get('/orders/{order}/show', [\App\Http\Controllers\WaiterController::class, 'showOrder'])->name('orders.show');
         Route::get('/tables/status', [\App\Http\Controllers\WaiterController::class, 'getTablesStatus'])->name('tables.status');
     });
 

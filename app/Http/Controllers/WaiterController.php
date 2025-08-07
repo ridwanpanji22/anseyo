@@ -126,6 +126,14 @@ class WaiterController extends Controller
     }
 
     /**
+     * Show order details for waiter.
+     */
+    public function showOrder(Order $order): View
+    {
+        return view('waiter.orders.show', compact('order'));
+    }
+
+    /**
      * Update table status based on order status.
      */
     private function updateTableStatus(Order $order)
