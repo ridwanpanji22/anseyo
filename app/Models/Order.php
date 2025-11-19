@@ -21,21 +21,31 @@ class Order extends Model
         'subtotal',
         'tax',
         'total',
+        'amount_paid',
+        'remaining_amount',
+        'amount_received',
+        'change_amount',
+        'payment_method',
+        'receipt_number',
         'notes',
         'ordered_at',
         'prepared_at',
         'served_at',
         'completed_at',
+        'paid_at',
     ];
 
     protected $casts = [
         'subtotal' => 'decimal:2',
         'tax' => 'decimal:2',
         'total' => 'decimal:2',
+        'amount_received' => 'decimal:2',
+        'change_amount' => 'decimal:2',
         'ordered_at' => 'datetime',
         'prepared_at' => 'datetime',
         'served_at' => 'datetime',
         'completed_at' => 'datetime',
+        'paid_at' => 'datetime',
     ];
 
     /**

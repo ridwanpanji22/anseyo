@@ -171,7 +171,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="paymentModalLabel">Pembayaran Sebagian</h5>
+                <h5 class="modal-title" id="paymentModalLabel">Pembayaran</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="partialPaymentForm" method="POST">
@@ -181,6 +181,20 @@
                         <label for="amount_paid" class="form-label">Jumlah yang Dibayar</label>
                         <input type="number" class="form-control" id="amount_paid" name="amount_paid" required>
                         <div class="form-text">Total pesanan: <span id="order_total">Rp 0</span></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="amount_received" class="form-label">Uang yang Diterima</label>
+                        <input type="number" class="form-control" id="amount_received" name="amount_received" required>
+                        <div class="form-text">Kembalian: <span id="change_amount">Rp 0</span></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="payment_method" class="form-label">Metode Pembayaran</label>
+                        <select class="form-select" id="payment_method" name="payment_method" required>
+                            <option value="cash">Cash</option>
+                            <option value="card">Card</option>
+                            <option value="qris">QRIS</option>
+                            <option value="transfer">Transfer</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -193,7 +207,7 @@
 </div>
 @endsection
 
-@push('js')
+@push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Auto refresh every 10 seconds
@@ -268,6 +282,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('order_total').textContent = 'Rp ' + orderTotal.toLocaleString('id-ID');
         document.getElementById('amount_paid').max = orderTotal;
         document.getElementById('amount_paid').value = '';
+        document.getElementById('amount_received').value = '';
+        document.getElementById('change_amount').textContent = 'Rp 0';
         
         const form = document.getElementById('partialPaymentForm');
         form.action = `/cashier/orders/${orderId}/mark-partial-payment`;
@@ -275,6 +291,30 @@ document.addEventListener('DOMContentLoaded', function() {
         const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
         modal.show();
     };
+
+    // Show full payment modal (for paying off the entire order)
+    window.showFullPayment = function(orderId, orderTotal) {
+        document.getElementById('order_total').textContent = 'Rp ' + orderTotal.toLocaleString('id-ID');
+        document.getElementById('amount_paid').max = orderTotal;
+        document.getElementById('amount_paid').value = orderTotal; // Set value to max
+        document.getElementById('amount_received').value = orderTotal; // Set default received amount
+        document.getElementById('change_amount').textContent = 'Rp 0';
+        
+        const form = document.getElementById('partialPaymentForm');
+        form.action = `/cashier/orders/${orderId}/mark-paid`; // Action for full payment
+        
+        const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
+        modal.show();
+    };
+
+    // Calculate change amount
+    document.getElementById('amount_received').addEventListener('input', function() {
+        const amountReceived = parseFloat(this.value) || 0;
+        const amountPaid = parseFloat(document.getElementById('amount_paid').value) || 0;
+        const changeAmount = amountReceived - amountPaid;
+        
+        document.getElementById('change_amount').textContent = 'Rp ' + changeAmount.toLocaleString('id-ID');
+    });
 
     // Handle partial payment form submission
     document.getElementById('partialPaymentForm').addEventListener('submit', function(e) {
@@ -290,7 +330,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                amount_paid: formData.get('amount_paid')
+                amount_paid: formData.get('amount_paid'),
+                amount_received: formData.get('amount_received'),
+                payment_method: formData.get('payment_method')
             })
         })
         .then(response => response.json())
@@ -305,6 +347,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Print receipt
+    window.printReceipt = function(orderId) {
+        window.open(`/cashier/orders/${orderId}/receipt`, '_blank');
+    };
 
     // Show notification
     function showNotification(message, type) {

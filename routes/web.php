@@ -86,6 +86,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('/orders/{order}/mark-paid', [\App\Http\Controllers\CashierController::class, 'markPaid'])->name('orders.mark-paid');
         Route::post('/orders/{order}/mark-partial-payment', [\App\Http\Controllers\CashierController::class, 'markPartialPayment'])->name('orders.mark-partial-payment');
         Route::get('/orders/by-payment-status', [\App\Http\Controllers\CashierController::class, 'getOrdersByPaymentStatus'])->name('orders.by-payment-status');
+        Route::get('/orders/{order}/show', [\App\Http\Controllers\CashierController::class, 'showOrder'])->name('orders.show');
+        Route::get('/orders/{order}/receipt', [\App\Http\Controllers\CashierController::class, 'printReceipt'])->name('orders.receipt');
         Route::get('/tables/status', [\App\Http\Controllers\CashierController::class, 'getTablesStatus'])->name('tables.status');
         Route::get('/revenue/daily', [\App\Http\Controllers\CashierController::class, 'getDailyRevenue'])->name('revenue.daily');
     });

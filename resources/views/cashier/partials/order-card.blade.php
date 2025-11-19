@@ -48,6 +48,13 @@
                 <br><small class="text-warning">Dibayar: Rp {{ number_format($order->amount_paid ?? 0, 0, ',', '.') }}</small>
                 <br><small class="text-danger">Sisa: Rp {{ number_format($order->remaining_amount ?? $order->total, 0, ',', '.') }}</small>
             @endif
+            @if($paymentStatus == 'paid')
+                <br><small class="text-success">Dibayar: Rp {{ number_format($order->amount_received ?? 0, 0, ',', '.') }}</small>
+                @if($order->change_amount > 0)
+                    <br><small class="text-info">Kembalian: Rp {{ number_format($order->change_amount, 0, ',', '.') }}</small>
+                @endif
+                <br><small class="text-muted">Metode: {{ strtoupper($order->payment_method ?? 'cash') }}</small>
+            @endif
         </div>
         <div class="btn-group btn-group-sm">
             @if($paymentStatus == 'unpaid')
@@ -59,19 +66,27 @@
                 </button>
                 <button type="button" 
                         class="btn btn-success btn-sm" 
-                        onclick="markPaid({{ $order->id }})"
-                        title="Tandai Lunas">
+                        onclick="showFullPayment({{ $order->id }}, {{ $order->total }})"
+                        title="Bayar Lunas">
                     <i class="bi bi-check-lg"></i>
                 </button>
             @elseif($paymentStatus == 'partial')
                 <button type="button" 
                         class="btn btn-success btn-sm" 
-                        onclick="markPaid({{ $order->id }})"
-                        title="Tandai Lunas">
+                        onclick="showFullPayment({{ $order->id }}, {{ $order->remaining_amount ?? $order->total }})"
+                        title="Bayar Sisa">
                     <i class="bi bi-check-lg"></i>
                 </button>
             @endif
-            <a href="{{ route('admin.orders.show', $order->id) }}" 
+            @if($paymentStatus == 'paid' && $order->receipt_number)
+                <button type="button" 
+                        class="btn btn-info btn-sm" 
+                        onclick="printReceipt({{ $order->id }})"
+                        title="Cetak Struk">
+                    <i class="bi bi-printer"></i>
+                </button>
+            @endif
+            <a href="{{ route('cashier.orders.show', $order->id) }}" 
                class="btn btn-outline-secondary btn-sm"
                title="Lihat Detail">
                 <i class="bi bi-eye"></i>
