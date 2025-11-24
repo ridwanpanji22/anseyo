@@ -120,6 +120,13 @@ class CashierController extends Controller
             'paid_at' => now(),
         ]);
 
+        if ($order->remaining_amount <= 0) {
+            $order->payment_status = 'paid';
+            $order->status = 'completed'; // trigger OrderObserver to free table
+        }
+
+        $order->save();
+
         return response()->json([
             'success' => true,
             'message' => 'Pembayaran lunas berhasil dicatat',
