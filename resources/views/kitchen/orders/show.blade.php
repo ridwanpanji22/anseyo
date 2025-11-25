@@ -11,6 +11,15 @@
 @endsection
 
 @section('content')
+@php
+    $statusColors = [
+        'pending' => 'warning',
+        'preparing' => 'info',
+        'ready' => 'success',
+        'cancelled' => 'danger',
+    ];
+    $statusColor = $statusColors[$order->status] ?? 'secondary';
+@endphp
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -18,6 +27,19 @@
                 <h4 class="card-title">Pesanan #{{ $order->order_number }}</h4>
             </div>
             <div class="card-body">
+                @if($order->status === 'cancelled')
+                    <div class="alert alert-warning d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong>Pesanan ini dibatalkan.</strong>
+                            @if($order->cancelled_reason)
+                                <p class="mb-0">Alasan: {{ $order->cancelled_reason }}</p>
+                            @endif
+                        </div>
+                        <small class="text-muted">
+                            {{ optional($order->cancelled_at)->format('d/m/Y H:i') }}
+                        </small>
+                    </div>
+                @endif
                 <!-- Order Information -->
                 <div class="row mb-4">
                     <div class="col-md-6">
@@ -30,7 +52,7 @@
                             <tr>
                                 <td><strong>Status:</strong></td>
                                 <td>
-                                    <span class="badge bg-{{ $order->status == 'pending' ? 'warning' : ($order->status == 'preparing' ? 'info' : ($order->status == 'ready' ? 'success' : 'secondary')) }}">
+                                    <span class="badge bg-{{ $statusColor }}">
                                         {{ ucfirst($order->status) }}
                                     </span>
                                 </td>
@@ -135,6 +157,15 @@
                                     Tandai Siap
                                 </button>
                             @endif
+
+                            @if(in_array($order->status, ['pending', 'preparing']))
+                                <button type="button"
+                                        class="btn btn-outline-danger"
+                                        onclick="cancelOrder({{ $order->id }})">
+                                    <i class="bi bi-x-circle me-1"></i>
+                                    Batalkan Pesanan
+                                </button>
+                            @endif
                             
                             <a href="{{ route('kitchen.dashboard') }}" class="btn btn-secondary">
                                 <i class="bi bi-arrow-left me-1"></i>
@@ -193,6 +224,47 @@
                 }
             });
         }
+    };
+
+    // Cancel order with reason
+    window.cancelOrder = function(orderId) {
+        const reason = prompt('Tuliskan alasan pembatalan pesanan ini:');
+
+        if (reason === null) {
+            return;
+        }
+
+        if (!reason.trim()) {
+            showNotification('Alasan pembatalan wajib diisi.', 'warning');
+            return;
+        }
+
+        fetch(`/kitchen/orders/${orderId}/cancel`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ reason: reason.trim() })
+        })
+        .then(async response => {
+            const data = await response.json();
+            return { ok: response.ok, data };
+        })
+        .then(({ ok, data }) => {
+            if (ok && data.success) {
+                showNotification(data.message, 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                showNotification(data.message || 'Pesanan gagal dibatalkan.', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Terjadi kesalahan saat membatalkan pesanan', 'danger');
+        });
     };
 
     // Show notification

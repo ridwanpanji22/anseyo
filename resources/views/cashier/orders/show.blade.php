@@ -121,10 +121,18 @@
                 <h6 class="mb-0">Informasi Pembayaran</h6>
             </div>
             <div class="card-body">
+                @php
+                    $paymentBadgeClasses = [
+                        'unpaid' => 'danger',
+                        'paid' => 'success',
+                        'cancelled' => 'secondary',
+                    ];
+                    $paymentBadge = $paymentBadgeClasses[$order->payment_status] ?? 'secondary';
+                @endphp
                 <div class="row mb-3">
                     <div class="col-12">
                         <strong>Status Pembayaran:</strong>
-                        <span class="badge bg-{{ $order->payment_status == 'unpaid' ? 'danger' : ($order->payment_status == 'partial' ? 'warning' : 'success') }}">
+                        <span class="badge bg-{{ $paymentBadge }}">
                             {{ ucfirst($order->payment_status) }}
                         </span>
                     </div>
@@ -136,22 +144,6 @@
                         <span class="fw-bold">Rp {{ number_format($order->total, 0, ',', '.') }}</span>
                     </div>
                 </div>
-
-                @if($order->payment_status == 'partial')
-                <div class="row mb-3">
-                    <div class="col-12">
-                        <strong>Sudah Dibayar:</strong>
-                        <span class="text-success">Rp {{ number_format($order->amount_paid ?? 0, 0, ',', '.') }}</span>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-12">
-                        <strong>Sisa Bayar:</strong>
-                        <span class="text-danger">Rp {{ number_format($order->remaining_amount ?? $order->total, 0, ',', '.') }}</span>
-                    </div>
-                </div>
-                @endif
 
                 @if($order->payment_status == 'paid')
                 <div class="row mb-3">
@@ -196,23 +188,10 @@
                 <div class="mt-4">
                     @if($order->payment_status == 'unpaid')
                         <button type="button" 
-                                class="btn btn-warning w-100 mb-2" 
-                                onclick="showPartialPayment({{ $order->id }}, {{ $order->total }})">
-                            <i class="bi bi-clock me-2"></i>
-                            Bayar Sebagian
-                        </button>
-                        <button type="button" 
                                 class="btn btn-success w-100 mb-2" 
-                                onclick="showFullPayment({{ $order->id }}, {{ $order->total }})">
-                            <i class="bi bi-check-lg me-2"></i>
+                                onclick="showPaymentModal({{ $order->id }}, {{ $order->total }})">
+                            <i class="bi bi-cash-stack me-2"></i>
                             Bayar Lunas
-                        </button>
-                    @elseif($order->payment_status == 'partial')
-                        <button type="button" 
-                                class="btn btn-success w-100 mb-2" 
-                                onclick="showFullPayment({{ $order->id }}, {{ $order->remaining_amount ?? $order->total }})">
-                            <i class="bi bi-check-lg me-2"></i>
-                            Bayar Sisa
                         </button>
                     @endif
 
@@ -259,16 +238,6 @@
                     </div>
                     @endif
 
-                    @if($order->amount_paid && $order->amount_paid > 0)
-                    <div class="timeline-item">
-                        <div class="timeline-marker bg-warning"></div>
-                        <div class="timeline-content">
-                            <h6 class="mb-1">Pembayaran Sebagian</h6>
-                            <small class="text-muted">Rp {{ number_format($order->amount_paid, 0, ',', '.') }}</small>
-                        </div>
-                    </div>
-                    @endif
-
                     @if($order->payment_status == 'paid')
                     <div class="timeline-item">
                         <div class="timeline-marker bg-success"></div>
@@ -292,13 +261,13 @@
                 <h5 class="modal-title" id="paymentModalLabel">Pembayaran</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="partialPaymentForm" method="POST">
+            <form id="paymentForm" method="POST">
                 @csrf
                 <div class="modal-body">
+                    <input type="hidden" id="order_total_value" value="0">
                     <div class="mb-3">
-                        <label for="amount_paid" class="form-label">Jumlah yang Dibayar</label>
-                        <input type="number" class="form-control" id="amount_paid" name="amount_paid" required>
-                        <div class="form-text">Total pesanan: <span id="order_total">Rp 0</span></div>
+                        <label class="form-label">Total Tagihan</label>
+                        <input type="text" class="form-control" id="order_total_display" value="Rp 0" readonly>
                     </div>
                     <div class="mb-3">
                         <label for="amount_received" class="form-label">Uang yang Diterima</label>
@@ -327,118 +296,85 @@
 
 @push('scripts')
 <script>
-// Mark order as paid
-window.markPaid = function(orderId) {
-    if (confirm('Tandai pesanan ini sebagai lunas?')) {
-        fetch(`/cashier/orders/${orderId}/mark-paid`, {
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentModalEl = document.getElementById('paymentModal');
+    const paymentModal = new bootstrap.Modal(paymentModalEl);
+    const paymentForm = document.getElementById('paymentForm');
+    const orderTotalInput = document.getElementById('order_total_value');
+    const orderTotalDisplay = document.getElementById('order_total_display');
+    const amountReceivedInput = document.getElementById('amount_received');
+    const paymentMethodInput = document.getElementById('payment_method');
+
+    window.showPaymentModal = function(orderId, orderTotal) {
+        orderTotalInput.value = orderTotal;
+        orderTotalDisplay.value = 'Rp ' + Number(orderTotal).toLocaleString('id-ID');
+        amountReceivedInput.value = orderTotal;
+        document.getElementById('change_amount').textContent = 'Rp 0';
+        paymentForm.action = `/cashier/orders/${orderId}/mark-paid`;
+        paymentModal.show();
+    };
+
+    amountReceivedInput.addEventListener('input', function() {
+        const orderTotal = parseFloat(orderTotalInput.value) || 0;
+        const amountReceived = parseFloat(this.value) || 0;
+        const changeAmount = amountReceived - orderTotal;
+
+        document.getElementById('change_amount').textContent = 'Rp ' + changeAmount.toLocaleString('id-ID');
+    });
+
+    paymentForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        fetch(this.action, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
                 'Content-Type': 'application/json',
-            }
+            },
+            body: JSON.stringify({
+                amount_received: amountReceivedInput.value,
+                payment_method: paymentMethodInput.value
+            })
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
+        .then(async response => {
+            const data = await response.json();
+            return { ok: response.ok, data };
+        })
+        .then(({ ok, data }) => {
+            if (ok && data.success) {
                 showNotification(data.message, 'success');
+                paymentModal.hide();
                 setTimeout(() => {
                     window.location.href = '{{ route("cashier.dashboard") }}';
-                }, 1500);
+                }, 1000);
+            } else {
+                showNotification(data.message || 'Pembayaran gagal disimpan.', 'danger');
             }
-        });
-    }
-};
-
-// Show partial payment modal
-window.showPartialPayment = function(orderId, orderTotal) {
-    document.getElementById('order_total').textContent = 'Rp ' + orderTotal.toLocaleString('id-ID');
-    document.getElementById('amount_paid').max = orderTotal;
-    document.getElementById('amount_paid').value = '';
-    document.getElementById('amount_received').value = '';
-    document.getElementById('change_amount').textContent = 'Rp 0';
-    
-    const form = document.getElementById('partialPaymentForm');
-    form.action = `/cashier/orders/${orderId}/mark-partial-payment`;
-    
-    const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
-    modal.show();
-};
-
-// Show full payment modal (for paying off the entire order)
-window.showFullPayment = function(orderId, orderTotal) {
-    document.getElementById('order_total').textContent = 'Rp ' + orderTotal.toLocaleString('id-ID');
-    document.getElementById('amount_paid').max = orderTotal;
-    document.getElementById('amount_paid').value = orderTotal; // Set value to max
-    document.getElementById('amount_received').value = orderTotal; // Set default received amount
-    document.getElementById('change_amount').textContent = 'Rp 0';
-    
-    const form = document.getElementById('partialPaymentForm');
-    form.action = `/cashier/orders/${orderId}/mark-paid`; // Action for full payment
-    
-    const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
-    modal.show();
-};
-
-// Calculate change amount
-document.getElementById('amount_received').addEventListener('input', function() {
-    const amountReceived = parseFloat(this.value) || 0;
-    const amountPaid = parseFloat(document.getElementById('amount_paid').value) || 0;
-    const changeAmount = amountReceived - amountPaid;
-    
-    document.getElementById('change_amount').textContent = 'Rp ' + changeAmount.toLocaleString('id-ID');
-});
-
-// Handle partial payment form submission
-document.getElementById('partialPaymentForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const orderId = this.action.split('/').pop();
-    
-    fetch(this.action, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            amount_paid: formData.get('amount_paid'),
-            amount_received: formData.get('amount_received'),
-            payment_method: formData.get('payment_method')
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification(data.message, 'success');
-            bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
-            setTimeout(() => {
-                window.location.href = '{{ route("cashier.dashboard") }}';
-            }, 1500);
-        }
+        .catch(() => {
+            showNotification('Terjadi kesalahan saat menyimpan pembayaran.', 'danger');
+        });
     });
+
+    window.printReceipt = function(orderId) {
+        window.open(`/cashier/orders/${orderId}/receipt`, '_blank');
+    };
+
+    function showNotification(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 3000);
+    }
 });
-
-// Print receipt
-window.printReceipt = function(orderId) {
-    window.open(`/cashier/orders/${orderId}/receipt`, '_blank');
-};
-
-// Show notification
-function showNotification(message, type) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    document.body.appendChild(alertDiv);
-    
-    setTimeout(() => {
-        alertDiv.remove();
-    }, 3000);
-}
 </script>
 
 <style>

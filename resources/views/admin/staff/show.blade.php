@@ -67,9 +67,6 @@
                                     @case('kitchen')
                                         <span class="badge bg-warning">Kitchen</span>
                                         @break
-                                    @case('waiter')
-                                        <span class="badge bg-success">Waiter</span>
-                                        @break
                                     @default
                                         <span class="badge bg-secondary">{{ ucfirst($staff->role) }}</span>
                                 @endswitch
@@ -113,9 +110,6 @@
                                                     @break
                                                 @case('kitchen')
                                                     <span class="badge bg-warning">Kitchen</span>
-                                                    @break
-                                                @case('waiter')
-                                                    <span class="badge bg-success">Waiter</span>
                                                     @break
                                                 @default
                                                     <span class="badge bg-secondary">{{ ucfirst($staff->role) }}</span>

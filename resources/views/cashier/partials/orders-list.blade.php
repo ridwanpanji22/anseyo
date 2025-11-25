@@ -8,8 +8,6 @@
         <p class="mt-2 text-muted">
             @if($paymentStatus == 'unpaid')
                 Tidak ada pesanan belum bayar
-            @elseif($paymentStatus == 'partial')
-                Tidak ada pesanan bayar sebagian
             @elseif($paymentStatus == 'paid')
                 Tidak ada pesanan lunas hari ini
             @else

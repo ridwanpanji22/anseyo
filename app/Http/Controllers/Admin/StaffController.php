@@ -45,7 +45,7 @@ class StaffController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
                 'password' => 'required|string|min:8|confirmed',
-                'role' => 'required|in:admin,cashier,kitchen,waiter',
+                'role' => 'required|in:admin,cashier,kitchen',
                 'is_active' => 'nullable|boolean',
                 'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
@@ -130,7 +130,7 @@ class StaffController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users,email,' . $staff->id,
                 'password' => 'nullable|string|min:8|confirmed',
-                'role' => 'required|in:admin,cashier,kitchen,waiter',
+                'role' => 'required|in:admin,cashier,kitchen',
                 'is_active' => 'nullable|boolean',
                 'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);

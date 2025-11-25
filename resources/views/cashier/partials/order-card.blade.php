@@ -1,4 +1,11 @@
 <div class="order-card mb-3 border rounded p-3" data-order-id="{{ $order->id }}">
+    @php
+        $badgeClasses = [
+            'unpaid' => 'danger',
+            'paid' => 'success',
+        ];
+        $badgeClass = $badgeClasses[$paymentStatus] ?? 'secondary';
+    @endphp
     <div class="d-flex justify-content-between align-items-start mb-2">
         <div>
             <h6 class="mb-1 fw-bold">#{{ $order->order_number }}</h6>
@@ -10,7 +17,7 @@
         <div class="text-end">
             <small class="text-muted">{{ $order->created_at->format('H:i') }}</small>
             <br>
-            <span class="badge bg-{{ $paymentStatus == 'unpaid' ? 'danger' : ($paymentStatus == 'partial' ? 'warning' : 'success') }}">
+            <span class="badge bg-{{ $badgeClass }}">
                 {{ ucfirst($paymentStatus) }}
             </span>
         </div>
@@ -44,10 +51,6 @@
     <div class="d-flex justify-content-between align-items-center">
         <div>
             <small class="text-muted">Total: Rp {{ number_format($order->total, 0, ',', '.') }}</small>
-            @if($paymentStatus == 'partial')
-                <br><small class="text-warning">Dibayar: Rp {{ number_format($order->amount_paid ?? 0, 0, ',', '.') }}</small>
-                <br><small class="text-danger">Sisa: Rp {{ number_format($order->remaining_amount ?? $order->total, 0, ',', '.') }}</small>
-            @endif
             @if($paymentStatus == 'paid')
                 <br><small class="text-success">Dibayar: Rp {{ number_format($order->amount_received ?? 0, 0, ',', '.') }}</small>
                 @if($order->change_amount > 0)
@@ -59,23 +62,10 @@
         <div class="btn-group btn-group-sm">
             @if($paymentStatus == 'unpaid')
                 <button type="button" 
-                        class="btn btn-warning btn-sm" 
-                        onclick="showPartialPayment({{ $order->id }}, {{ $order->total }})"
-                        title="Bayar Sebagian">
-                    <i class="bi bi-clock"></i>
-                </button>
-                <button type="button" 
                         class="btn btn-success btn-sm" 
-                        onclick="showFullPayment({{ $order->id }}, {{ $order->total }})"
+                        onclick="showPaymentModal({{ $order->id }}, {{ $order->total }})"
                         title="Bayar Lunas">
-                    <i class="bi bi-check-lg"></i>
-                </button>
-            @elseif($paymentStatus == 'partial')
-                <button type="button" 
-                        class="btn btn-success btn-sm" 
-                        onclick="showFullPayment({{ $order->id }}, {{ $order->remaining_amount ?? $order->total }})"
-                        title="Bayar Sisa">
-                    <i class="bi bi-check-lg"></i>
+                    <i class="bi bi-cash-stack"></i>
                 </button>
             @endif
             @if($paymentStatus == 'paid' && $order->receipt_number)

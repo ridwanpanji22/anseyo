@@ -25,7 +25,7 @@
     <div class="col-lg-5 col-12">
         <div id="auth-left">
             <div class="auth-logo">
-                <a href="{{ route('home') }}"><img src="{{ asset('assets/mazer/svg/logo.svg') }}" alt="Logo"></a>
+                <a href="{{ route('home') }}"><img src="{{ asset('assets/mazer/png/logo-anseyo.png') }}" alt="Anseyo Logo" style="height: 4rem;"></a>
             </div>
             <h1 class="auth-title">Log in.</h1>
             <p class="auth-subtitle mb-5">Login dengan akun Anda untuk mengakses dashboard admin.</p>
@@ -94,8 +94,8 @@
         </div>
     </div>
     <div class="col-lg-7 d-none d-lg-block">
-        <div id="auth-right">
-
+        <div id="auth-right" class="d-flex align-items-center justify-content-center">
+            <img src="{{ asset('assets/mazer/png/logo-anseyo.png') }}" alt="Anseyo Logo" class="img-fluid" style="max-height: 60%; max-width: 70%;">
         </div>
     </div>
 </div>

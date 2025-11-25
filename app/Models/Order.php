@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Setting;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,11 +29,14 @@ class Order extends Model
         'payment_method',
         'receipt_number',
         'notes',
+        'cancelled_reason',
+        'cancelled_by',
         'ordered_at',
         'prepared_at',
         'served_at',
         'completed_at',
         'paid_at',
+        'cancelled_at',
     ];
 
     protected $casts = [
@@ -46,6 +50,7 @@ class Order extends Model
         'served_at' => 'datetime',
         'completed_at' => 'datetime',
         'paid_at' => 'datetime',
+        'cancelled_at' => 'datetime',
     ];
 
     /**
@@ -88,8 +93,11 @@ class Order extends Model
      */
     public function calculateTotals(): void
     {
+        $this->loadMissing('orderItems');
+
         $subtotal = $this->orderItems->sum('subtotal');
-        $tax = $subtotal * 0.11; // 11% tax
+        $taxRate = (float) Setting::get('tax_rate', 10);
+        $tax = $subtotal * ($taxRate / 100);
         $total = $subtotal + $tax;
         
         $this->update([

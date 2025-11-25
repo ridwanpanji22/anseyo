@@ -29,5 +29,13 @@ class AdminUserSeeder extends Seeder
             'role' => 'cashier',
             'is_active' => true,
         ]);
+
+        User::create([
+            'name' => 'Kitchen',
+            'email' => 'kitchen@anseyo.com',
+            'password' => Hash::make('password'),
+            'role' => 'kitchen',
+            'is_active' => true,
+        ]);
     }
 }

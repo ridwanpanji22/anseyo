@@ -61,6 +61,14 @@
                     <i class="bi bi-check-lg"></i>
                 </button>
             @endif
+            @if(in_array($status, ['pending', 'preparing']))
+                <button type="button"
+                        class="btn btn-outline-danger btn-sm"
+                        onclick="cancelOrder({{ $order->id }})"
+                        title="Batalkan Pesanan">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            @endif
             <a href="{{ route('kitchen.orders.show', $order->id) }}" 
                class="btn btn-outline-secondary btn-sm"
                title="Lihat Detail">

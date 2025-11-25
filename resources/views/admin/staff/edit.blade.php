@@ -115,7 +115,6 @@
                                         <option value="admin" {{ old('role', $staff->role) == 'admin' ? 'selected' : '' }}>Admin</option>
                                         <option value="cashier" {{ old('role', $staff->role) == 'cashier' ? 'selected' : '' }}>Kasir</option>
                                         <option value="kitchen" {{ old('role', $staff->role) == 'kitchen' ? 'selected' : '' }}>Dapur</option>
-                                        <option value="waiter" {{ old('role', $staff->role) == 'waiter' ? 'selected' : '' }}>Pelayan</option>
                                     </select>
                                     @error('role')
                                         <div class="invalid-feedback">{{ $message }}</div>

@@ -241,6 +241,47 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    // Cancel order with reason
+    window.cancelOrder = function(orderId) {
+        const reason = prompt('Tuliskan alasan pembatalan pesanan ini:');
+
+        if (reason === null) {
+            return;
+        }
+
+        if (!reason.trim()) {
+            showNotification('Alasan pembatalan wajib diisi.', 'warning');
+            return;
+        }
+
+        fetch(`/kitchen/orders/${orderId}/cancel`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ reason: reason.trim() })
+        })
+        .then(async response => {
+            const data = await response.json();
+            return { ok: response.ok, data };
+        })
+        .then(({ ok, data }) => {
+            if (ok && data.success) {
+                showNotification(data.message, 'success');
+                setTimeout(() => {
+                    updateOrders();
+                }, 1000);
+            } else {
+                showNotification(data.message || 'Pesanan gagal dibatalkan.', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Terjadi kesalahan saat membatalkan pesanan', 'danger');
+        });
+    };
+
     // Show notification
     function showNotification(message, type) {
         const alertDiv = document.createElement('div');

@@ -42,8 +42,6 @@ class LoginController extends Controller
             
             if ($user->role === 'kitchen') {
                 return route('kitchen.dashboard');
-            } elseif ($user->role === 'waiter') {
-                return route('waiter.dashboard');
             } elseif ($user->role === 'cashier') {
                 return route('cashier.dashboard');
             } elseif (in_array($user->role, ['admin'])) {

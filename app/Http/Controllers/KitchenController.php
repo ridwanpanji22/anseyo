@@ -96,6 +96,39 @@ class KitchenController extends Controller
     }
 
     /**
+     * Cancel order from kitchen side when needed.
+     */
+    public function cancel(Order $order, Request $request)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:500',
+        ]);
+
+        if (!in_array($order->status, ['pending', 'preparing'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesanan tidak dapat dibatalkan pada status saat ini.'
+            ], 422);
+        }
+
+        $order->update([
+            'status' => 'cancelled',
+            'payment_status' => 'unpaid',
+            'cancelled_reason' => $request->reason,
+            'cancelled_at' => now(),
+            'cancelled_by' => auth()->id(),
+        ]);
+
+        $this->updateTableStatus($order);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pesanan #' . $order->order_number . ' dibatalkan.',
+            'order' => $order->fresh(['table', 'orderItems.menu'])
+        ]);
+    }
+
+    /**
      * Get orders by status for AJAX updates.
      */
     public function getOrdersByStatus(Request $request)
@@ -137,7 +170,7 @@ class KitchenController extends Controller
 
         // Check if there are any active orders for this table
         $activeOrders = Order::where('table_id', $table->id)
-            ->whereIn('status', ['pending', 'preparing', 'ready', 'served'])
+            ->whereIn('status', ['pending', 'preparing', 'ready'])
             ->count();
 
         if ($activeOrders > 0) {

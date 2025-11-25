@@ -17,12 +17,7 @@ class CashierController extends Controller
         // Get orders that need payment attention
         $unpaidOrders = Order::with(['table', 'orderItems.menu'])
             ->where('payment_status', 'unpaid')
-            ->whereIn('status', ['served', 'completed'])
-            ->latest()
-            ->get();
-
-        $partialOrders = Order::with(['table', 'orderItems.menu'])
-            ->where('payment_status', 'partial')
+            ->whereIn('status', ['ready'])
             ->latest()
             ->get();
 
@@ -35,13 +30,12 @@ class CashierController extends Controller
 
         // Get tables status
         $tables = Table::with(['orders' => function($query) {
-            $query->whereIn('status', ['pending', 'preparing', 'ready', 'served']);
+            $query->whereIn('status', ['pending', 'preparing', 'ready']);
         }])->get();
 
         // Statistics
         $stats = [
             'unpaid' => $unpaidOrders->count(),
-            'partial' => $partialOrders->count(),
             'paid_today' => Order::where('payment_status', 'paid')
                 ->whereDate('created_at', today())
                 ->count(),
@@ -51,81 +45,34 @@ class CashierController extends Controller
             'occupied_tables' => $tables->where('status', 'occupied')->count(),
         ];
 
-        return view('cashier.dashboard', compact('unpaidOrders', 'partialOrders', 'paidOrders', 'tables', 'stats'));
-    }
-
-    /**
-     * Update payment status to partial.
-     */
-    public function markPartialPayment(Order $order, Request $request)
-    {
-        $request->validate([
-            'amount_paid' => 'required|numeric|min:0|max:' . $order->total,
-            'amount_received' => 'required|numeric|min:0',
-            'payment_method' => 'required|in:cash,card,qris,transfer',
-        ]);
-
-        $amountPaid = $request->amount_paid;
-        $amountReceived = $request->amount_received;
-        $changeAmount = $amountReceived - $amountPaid;
-        $remainingAmount = $order->total - $amountPaid;
-
-        $order->update([
-            'payment_status' => 'partial',
-            'amount_paid' => $amountPaid,
-            'remaining_amount' => $remainingAmount,
-            'amount_received' => $amountReceived,
-            'change_amount' => $changeAmount,
-            'payment_method' => $request->payment_method,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Pembayaran sebagian berhasil dicatat',
-            'order' => $order->fresh(['table', 'orderItems.menu'])
-        ]);
+        return view('cashier.dashboard', compact('unpaidOrders', 'paidOrders', 'tables', 'stats'));
     }
 
     /**
      * Update payment status to paid.
      */
-    public function markPaid(Order $order, Request $request = null)
+    public function markPaid(Request $request, Order $order)
     {
-        // Jika dipanggil dari modal, gunakan data dari request
-        if ($request && $request->has('amount_received')) {
-            $request->validate([
-                'amount_received' => 'required|numeric|min:' . $order->total,
-                'payment_method' => 'required|in:cash,card,qris,transfer',
-            ]);
+        $request->validate([
+            'amount_received' => 'required|numeric|min:' . $order->total,
+            'payment_method' => 'required|in:cash,card,qris,transfer',
+        ]);
 
-            $amountReceived = $request->amount_received;
-            $changeAmount = $amountReceived - $order->total;
-        } else {
-            // Jika dipanggil langsung (tanpa modal), set default values
-            $amountReceived = $order->total;
-            $changeAmount = 0;
-        }
-
-        // Generate receipt number
-        $receiptNumber = 'RCP' . date('Ymd') . str_pad(Order::whereDate('paid_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
+        $amountReceived = $request->amount_received;
+        $changeAmount = $amountReceived - $order->total;
 
         $order->update([
             'payment_status' => 'paid',
+            'status' => 'completed',
             'amount_paid' => $order->total,
             'remaining_amount' => 0,
             'amount_received' => $amountReceived,
             'change_amount' => $changeAmount,
-            'payment_method' => $request->payment_method ?? 'cash',
-            'receipt_number' => $receiptNumber,
+            'payment_method' => $request->payment_method,
+            'receipt_number' => $this->generateReceiptNumber(),
+            'completed_at' => $order->completed_at ?? now(),
             'paid_at' => now(),
         ]);
-
-        if ($order->remaining_amount <= 0) {
-            $order->payment_status = 'paid';
-            $order->status = 'completed'; // trigger OrderObserver to free table
-        }
-
-        $order->save();
 
         return response()->json([
             'success' => true,
@@ -164,9 +111,11 @@ class CashierController extends Controller
         
         if ($paymentStatus === 'unpaid') {
             $query->where('payment_status', 'unpaid')
-                  ->whereIn('status', ['served', 'completed']);
-        } else {
+                  ->whereIn('status', ['ready']);
+        } elseif ($paymentStatus === 'paid') {
             $query->where('payment_status', $paymentStatus);
+        } else {
+            $query->where('payment_status', 'paid');
         }
         
         $orders = $query->latest()->get();
@@ -184,7 +133,7 @@ class CashierController extends Controller
     public function getTablesStatus()
     {
         $tables = Table::with(['orders' => function($query) {
-            $query->whereIn('status', ['pending', 'preparing', 'ready', 'served']);
+            $query->whereIn('status', ['pending', 'preparing', 'ready']);
         }])->get();
 
         return response()->json([

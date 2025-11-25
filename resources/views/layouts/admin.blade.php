@@ -1,4 +1,4 @@
-\]]]]]]]<!DOCTYPE html>
+<!DOCTYPE html>
 <html lan, g="en">
 <head>
     <meta charset="UTF-8">
@@ -122,19 +122,15 @@ m/bni"''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
                         <div class="logo">
                             @if(auth()->user()->role == 'admin')
                                 <a href="{{ route('admin.dashboard') }}">
-                                    <img src="{{ asset('assets/mazer/svg/logo.svg') }}" alt="Logo" srcset="">
+                                    <img src="{{ asset('assets/mazer/png/logo-anseyo.png') }}" alt="Anseyo Logo" style="height: 3rem;">
                                 </a>
                             @elseif(auth()->user()->role == 'kitchen')
                                 <a href="{{ route('kitchen.dashboard') }}">
-                                    <img src="{{ asset('assets/mazer/svg/logo.svg') }}" alt="Logo" srcset="">
-                                </a>
-                            @elseif(auth()->user()->role == 'waiter')
-                                <a href="{{ route('waiter.dashboard') }}">
-                                    <img src="{{ asset('assets/mazer/svg/logo.svg') }}" alt="Logo" srcset="">
+                                    <img src="{{ asset('assets/mazer/png/logo-anseyo.png') }}" alt="Anseyo Logo" style="height: 3rem;">
                                 </a>
                             @elseif(auth()->user()->role == 'cashier')
                                 <a href="{{ route('cashier.dashboard') }}">
-                                    <img src="{{ asset('assets/mazer/svg/logo.svg') }}" alt="Logo" srcset="">
+                                    <img src="{{ asset('assets/mazer/png/logo-anseyo.png') }}" alt="Anseyo Logo" style="height: 3rem;">
                                 </a>
                             @endif
                         </div>
@@ -144,7 +140,7 @@ m/bni"''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
                                 <input class="form-check-input me-0" type="checkbox" id="toggle-dark" style="cursor: pointer">
                                 <label class="form-check-label"></label>
                             </div>
-                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--mdi" width="20" height="20" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><path fill="currentColor" d="m17.75 4.09l-2.53 1.94l.91 3.06l-2.63-1.81l-2.63 1.81l.91-3.06l-2.53-1.94L12.44 4l1.06-3l1.06 3l3.19.09m3.5 6.91l-2.53 1.94l.91 3.06l-2.63-1.81l-2.63 1.81l.91-3.06l-2.53-1.94L17.44 13l1.06-3l1.06 3l3.19.09m3.5 6.91l-2.53 1.94l.91 3.06l-2.63-1.81l-2.63 1.81l.91-3.06l-2.53-1.94L20.94 20l1.06-3l1.06 3l3.19.09M4.5 11l-2.53 1.94l.91 3.06l-2.63-1.81l-2.63 1.81l.91-3.06L1.44 11L4.5 8l1.06 3L4.5 11m3.5 6.91l-2.53 1.94l.91 3.06l-2.63-1.81l-2.63 1.81l.91-3.06l-2.53-1.94L7.94 20l1.06-3L9 20l3.19.09M4.5 2l-2.53 1.94l.91 3.06l-2.63-1.81l-2.63 1.81l.91-3.06L1.44 2L4.5-1l1.06 3L4.5 2z"></path></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--mdi" width="20" height="20" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><path fill="currentColor" d="m17.75 4.09l-2.53 1.94l.91 3.06l-2.63-1.81l-2.63 1.81l.91-3.06l-2.53-1.94L12.44 4l1.06-3m3.5 6.91l-2.53 1.94l.91 3.06l-2.63-1.81l-2.63 1.81l.91-3.06l-2.53-1.94L17.44 13l1.06-3l1.06 3l3.19.09m3.5 6.91l-2.53 1.94l.91 3.06l-2.63-1.81l-2.63 1.81l.91-3.06l-2.53-1.94L20.94 20l1.06-3l1.06 3l3.19.09M4.5 11l-2.53 1.94l.91 3.06l-2.63-1.81l-2.63 1.81l.91-3.06L1.44 11L4.5 8l1.06 3L4.5 11m3.5 6.91l-2.53 1.94l.91 3.06l-2.63-1.81l-2.63 1.81l.91-3.06l-2.53-1.94L7.94 20l1.06-3L9 20l3.19.09M4.5 2l-2.53 1.94l.91 3.06l-2.63-1.81l-2.63 1.81l.91-3.06L1.44 2L4.5-1l1.06 3L4.5 2z"></path></svg>
                         </div>
                         <div class="sidebar-toggler x">
                             <a href="#" class="sidebar-hide d-xl-none d-block"><i class="bi bi-x bi-middle"></i></a>
@@ -193,15 +189,6 @@ m/bni"''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
                         </li>
                         @endif
                         
-                        @if(auth()->user()->role == 'waiter' || auth()->user()->role == 'admin')
-                        <li class="sidebar-item {{ request()->routeIs('waiter.*') ? 'active' : '' }}">
-                            <a href="{{ route('waiter.dashboard') }}" class='sidebar-link'>
-                                <i class="bi bi-truck"></i>
-                                <span>Dashboard Waiter</span>
-                            </a>
-                        </li>
-                        @endif
-                        
                         @if(auth()->user()->role == 'cashier' || auth()->user()->role == 'admin')
                         <li class="sidebar-item {{ request()->routeIs('cashier.*') ? 'active' : '' }}">
                             <a href="{{ route('cashier.dashboard') }}" class='sidebar-link'>
@@ -237,6 +224,12 @@ m/bni"''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
                         <li class="sidebar-title">Pengaturan</li>
                         
                         @if(auth()->user()->role == 'admin')
+                        <li class="sidebar-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.settings.index') }}" class='sidebar-link'>
+                                <i class="bi bi-gear"></i>
+                                <span>Pengaturan</span>
+                            </a>
+                        </li>
                         <li class="sidebar-item {{ request()->routeIs('admin.profile.*') ? 'active' : '' }}">
                             <a href="{{ route('admin.profile.edit') }}" class='sidebar-link'>
                                 <i class="bi bi-person"></i>
@@ -333,8 +326,6 @@ m/bni"''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
                                             <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
                                         @elseif(auth()->user()->role == 'kitchen')
                                             <li class="breadcrumb-item"><a href="{{ route('kitchen.dashboard') }}">Dashboard</a></li>
-                                        @elseif(auth()->user()->role == 'waiter')
-                                            <li class="breadcrumb-item"><a href="{{ route('waiter.dashboard') }}">Dashboard</a></li>
                                         @elseif(auth()->user()->role == 'cashier')
                                             <li class="breadcrumb-item"><a href="{{ route('cashier.dashboard') }}">Dashboard</a></li>
                                         @endif
@@ -437,4 +428,4 @@ m/bni"''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     
     @stack('scripts')
 </body>
-</html> 
+</html>

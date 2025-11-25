@@ -69,7 +69,7 @@ class OrderObserver
     {
         // Check if there are any active orders for this table
         $activeOrders = Order::where('table_id', $table->id)
-            ->whereIn('status', ['pending', 'preparing', 'ready', 'served'])
+            ->whereIn('status', ['pending', 'preparing', 'ready'])
             ->count();
 
         if ($activeOrders > 0) {

@@ -67,7 +67,6 @@
                                                 'admin' => 'primary',
                                                 'cashier' => 'success',
                                                 'kitchen' => 'warning',
-                                                'waiter' => 'info',
                                             ];
                                         @endphp
                                         <span class="badge bg-{{ $roleColors[$staff->role] ?? 'secondary' }}">

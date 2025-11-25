@@ -28,8 +28,6 @@ class HomeController extends Controller
         
         if ($user->role === 'kitchen') {
             return redirect()->route('kitchen.dashboard');
-        } elseif ($user->role === 'waiter') {
-            return redirect()->route('waiter.dashboard');
         } elseif ($user->role === 'cashier') {
             return redirect()->route('cashier.dashboard');
         } elseif (in_array($user->role, ['admin'])) {

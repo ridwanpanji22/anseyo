@@ -79,8 +79,8 @@ class OrderController extends Controller
     {
         $request->validate([
             'table_id' => 'nullable|exists:tables,id',
-            'status' => 'required|in:pending,preparing,ready,served,completed,cancelled',
-            'payment_status' => 'required|in:unpaid,paid,partial',
+            'status' => 'required|in:pending,preparing,ready,completed,cancelled',
+            'payment_status' => 'required|in:unpaid,paid',
             'notes' => 'nullable|string',
         ]);
 
@@ -93,9 +93,6 @@ class OrderController extends Controller
                 break;
             case 'ready':
                 $data['prepared_at'] = $order->prepared_at ?? now();
-                break;
-            case 'served':
-                $data['served_at'] = now();
                 break;
             case 'completed':
                 $data['completed_at'] = now();
@@ -117,7 +114,7 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'required|in:pending,preparing,ready,served,completed,cancelled',
+            'status' => 'required|in:pending,preparing,ready,completed,cancelled',
         ]);
 
         $data = ['status' => $request->status];
@@ -129,9 +126,6 @@ class OrderController extends Controller
                 break;
             case 'ready':
                 $data['prepared_at'] = $order->prepared_at ?? now();
-                break;
-            case 'served':
-                $data['served_at'] = now();
                 break;
             case 'completed':
                 $data['completed_at'] = now();
@@ -156,7 +150,7 @@ class OrderController extends Controller
     public function updatePaymentStatus(Request $request, Order $order)
     {
         $request->validate([
-            'payment_status' => 'required|in:unpaid,paid,partial',
+            'payment_status' => 'required|in:unpaid,paid',
         ]);
 
         $order->update(['payment_status' => $request->payment_status]);
@@ -195,19 +189,6 @@ class OrderController extends Controller
     }
 
     /**
-     * Get ready orders for waiters.
-     */
-    public function waiterOrders()
-    {
-        $orders = Order::with(['table', 'orderItems.menu'])
-            ->where('status', 'ready')
-            ->latest()
-            ->get();
-            
-        return view('admin.orders.waiter', compact('orders'));
-    }
-
-    /**
      * Update table status based on order status.
      */
     private function updateTableStatus(Order $order)
@@ -220,7 +201,7 @@ class OrderController extends Controller
 
         // Check if there are any active orders for this table
         $activeOrders = Order::where('table_id', $table->id)
-            ->whereIn('status', ['pending', 'preparing', 'ready', 'served'])
+            ->whereIn('status', ['pending', 'preparing', 'ready'])
             ->count();
 
         if ($activeOrders > 0) {

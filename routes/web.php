@@ -14,8 +14,6 @@ Route::get('/', function () {
     
     if ($user->role === 'kitchen') {
         return redirect()->route('kitchen.dashboard');
-    } elseif ($user->role === 'waiter') {
-        return redirect()->route('waiter.dashboard');
     } elseif ($user->role === 'cashier') {
         return redirect()->route('cashier.dashboard');
     } elseif (in_array($user->role, ['admin'])) {
@@ -56,6 +54,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // AJAX Routes for Tables
     Route::post('/tables/{table}/status', [\App\Http\Controllers\Admin\TableController::class, 'updateStatus'])->name('tables.update-status-ajax');
     
+    // Settings
+    Route::get('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
+
     // Profile
     Route::get('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
@@ -66,25 +68,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/dashboard', [\App\Http\Controllers\KitchenController::class, 'dashboard'])->name('dashboard');
         Route::post('/orders/{order}/start-preparing', [\App\Http\Controllers\KitchenController::class, 'startPreparing'])->name('orders.start-preparing');
         Route::post('/orders/{order}/mark-ready', [\App\Http\Controllers\KitchenController::class, 'markReady'])->name('orders.mark-ready');
+        Route::post('/orders/{order}/cancel', [\App\Http\Controllers\KitchenController::class, 'cancel'])->name('orders.cancel');
         Route::get('/orders/by-status', [\App\Http\Controllers\KitchenController::class, 'getOrdersByStatus'])->name('orders.by-status');
         Route::get('/orders/{order}/show', [\App\Http\Controllers\KitchenController::class, 'showOrder'])->name('orders.show');
-    });
-
-    // Waiter Dashboard - Allow waiter and admin roles
-    Route::middleware(['auth', 'waiter'])->prefix('waiter')->name('waiter.')->group(function () {
-        Route::get('/dashboard', [\App\Http\Controllers\WaiterController::class, 'dashboard'])->name('dashboard');
-        Route::post('/orders/{order}/mark-served', [\App\Http\Controllers\WaiterController::class, 'markServed'])->name('orders.mark-served');
-        Route::post('/orders/{order}/mark-completed', [\App\Http\Controllers\WaiterController::class, 'markCompleted'])->name('orders.mark-completed');
-        Route::get('/orders/by-status', [\App\Http\Controllers\WaiterController::class, 'getOrdersByStatus'])->name('orders.by-status');
-        Route::get('/orders/{order}/show', [\App\Http\Controllers\WaiterController::class, 'showOrder'])->name('orders.show');
-        Route::get('/tables/status', [\App\Http\Controllers\WaiterController::class, 'getTablesStatus'])->name('tables.status');
     });
 
     // Cashier Dashboard - Allow cashier and admin roles
     Route::middleware(['auth', 'cashier'])->prefix('cashier')->name('cashier.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\CashierController::class, 'dashboard'])->name('dashboard');
         Route::post('/orders/{order}/mark-paid', [\App\Http\Controllers\CashierController::class, 'markPaid'])->name('orders.mark-paid');
-        Route::post('/orders/{order}/mark-partial-payment', [\App\Http\Controllers\CashierController::class, 'markPartialPayment'])->name('orders.mark-partial-payment');
         Route::get('/orders/by-payment-status', [\App\Http\Controllers\CashierController::class, 'getOrdersByPaymentStatus'])->name('orders.by-payment-status');
         Route::get('/orders/{order}/show', [\App\Http\Controllers\CashierController::class, 'showOrder'])->name('orders.show');
         Route::get('/orders/{order}/receipt', [\App\Http\Controllers\CashierController::class, 'printReceipt'])->name('orders.receipt');
@@ -97,4 +89,5 @@ Route::prefix('order')->name('order.')->group(function () {
     Route::get('/{table}/create', [\App\Http\Controllers\OrderController::class, 'create'])->name('create');
     Route::post('/{table}/store', [\App\Http\Controllers\OrderController::class, 'store'])->name('store');
     Route::get('/{order}/show', [\App\Http\Controllers\OrderController::class, 'show'])->name('show');
+    Route::post('/{order}/cancel', [\App\Http\Controllers\OrderController::class, 'cancel'])->name('cancel');
 });

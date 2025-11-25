@@ -61,11 +61,15 @@
                                 break;
                             case 'ready':
                                 $statusClass = 'status-ready';
-                                $statusText = 'Siap Diantar';
+                                $statusText = 'Siap Diambil';
                                 break;
                             case 'completed':
                                 $statusClass = 'status-completed';
                                 $statusText = 'Selesai';
+                                break;
+                            case 'cancelled':
+                                $statusClass = 'status-cancelled';
+                                $statusText = 'Dibatalkan';
                                 break;
                             default:
                                 $statusClass = 'status-pending';
@@ -81,9 +85,11 @@
                         @elseif($order->status == 'preparing')
                             Makanan sedang disiapkan oleh chef
                         @elseif($order->status == 'ready')
-                            Makanan siap diantar oleh waiter
+                            Pesanan siap diambil dan dibayar di kasir
                         @elseif($order->status == 'completed')
                             Pesanan telah selesai
+                        @elseif($order->status == 'cancelled')
+                            Pesanan dibatalkan
                         @endif
                     </small>
                 </div>
@@ -171,7 +177,7 @@
                                 <td class="text-end">Rp{{ number_format($order->subtotal) }}</td>
                             </tr>
                             <tr>
-                                <td>Pajak (10%):</td>
+                                <td>Pajak ({{ $taxRate }}%):</td>
                                 <td class="text-end">Rp{{ number_format($order->tax) }}</td>
                             </tr>
                             <tr class="border-top">
@@ -183,6 +189,36 @@
                 </div>
             </div>
         </div>
+
+        @if($order->status === 'pending')
+        <div class="card mt-4 border-danger">
+            <div class="card-body">
+                <h6 class="text-danger mb-3">
+                    <i class="bi bi-x-circle"></i> Batalkan Pesanan
+                </h6>
+                <form method="POST" action="{{ route('order.cancel', $order->id) }}">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="cancel_reason" class="form-label">Alasan (opsional)</label>
+                        <textarea id="cancel_reason" name="reason" class="form-control" rows="2" placeholder="Contoh: Salah pilih menu"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Batalkan pesanan ini?')">
+                        <i class="bi bi-x-lg"></i> Batalkan Pesanan
+                    </button>
+                </form>
+            </div>
+        </div>
+        @elseif($order->status === 'cancelled')
+        <div class="alert alert-warning mt-4" role="alert">
+            <strong>Pesanan dibatalkan.</strong>
+            @if($order->cancelled_reason)
+                <br>Alasan: {{ $order->cancelled_reason }}
+            @endif
+            @if($order->cancelled_at)
+                <br><small class="text-muted">Dibatalkan pada {{ $order->cancelled_at->format('d M Y H:i') }}</small>
+            @endif
+        </div>
+        @endif
 
         <!-- Action Buttons -->
         <div class="text-center mt-4">

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Setting;
 use App\Models\Table;
 use App\Models\Menu;
 use App\Models\Order;
@@ -27,7 +28,9 @@ class OrderController extends Controller
             ->orderBy('sort_order')
             ->get();
             
-        return view('order.create', compact('table', 'categories'));
+        $taxRate = Setting::get('tax_rate', 10);
+
+        return view('order.create', compact('table', 'categories', 'taxRate'));
     }
 
     /**
@@ -76,9 +79,6 @@ class OrderController extends Controller
             'ordered_at' => now(),
         ]);
 
-        $totalItems = 0;
-        $subtotal = 0;
-
         // Buat item pesanan hanya untuk yang dipilih
         foreach ($selectedItems as $item) {
             $menu = Menu::findOrFail($item['menu_id']);
@@ -94,19 +94,9 @@ class OrderController extends Controller
                 'status' => 'pending',
             ]);
             
-            $totalItems += $item['quantity'];
-            $subtotal += $itemSubtotal;
         }
 
-        // Update total pesanan
-        $tax = $subtotal * 0.1; // 10% tax
-        $total = $subtotal + $tax;
-        
-        $order->update([
-            'subtotal' => $subtotal,
-            'tax' => $tax,
-            'total' => $total,
-        ]);
+        $order->calculateTotals();
 
         // Update table status to occupied
         $table->update(['status' => 'occupied']);
@@ -122,8 +112,34 @@ class OrderController extends Controller
     {
         $order = Order::with(['orderItems.menu', 'table'])
             ->findOrFail($orderId);
+        $taxRate = Setting::get('tax_rate', 10);
             
-        return view('order.show', compact('order'));
+        return view('order.show', compact('order', 'taxRate'));
+    }
+
+    /**
+     * Batalkan pesanan oleh customer selama masih pending.
+     */
+    public function cancel(Request $request, Order $order)
+    {
+        $request->validate([
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        if ($order->status !== 'pending') {
+            return back()->withErrors(['error' => 'Pesanan tidak bisa dibatalkan karena sudah diproses.']);
+        }
+
+        $order->update([
+            'status' => 'cancelled',
+            'payment_status' => 'unpaid',
+            'cancelled_reason' => $request->reason,
+            'cancelled_at' => now(),
+            'cancelled_by' => null,
+        ]);
+
+        return redirect()->route('order.show', $order->id)
+            ->with('success', 'Pesanan berhasil dibatalkan.');
     }
 
     /**

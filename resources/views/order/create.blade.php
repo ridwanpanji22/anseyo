@@ -103,18 +103,10 @@
                     <div id="orderSummary">
                         <p class="text-muted">Belum ada item yang dipilih</p>
                     </div>
-                    <div class="row mt-3">
-                        <div class="col-md-6">
-                            <label for="notes" class="form-label">Catatan (Opsional)</label>
-                            <textarea class="form-control" id="notes" name="notes" rows="3" 
-                                      placeholder="Contoh: Pedas level 2, tidak pakai bawang">{{ old('notes') }}</textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="text-end">
-                                <h5>Total: <span id="totalAmount" class="text-primary">Rp0</span></h5>
-                                <small class="text-muted">*Sudah termasuk pajak 10%</small>
-                            </div>
-                        </div>
+                    <div class="mt-3">
+                        <label for="notes" class="form-label">Catatan (Opsional)</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                  placeholder="Contoh: Pedas level 2, tidak pakai bawang">{{ old('notes') }}</textarea>
                     </div>
                 </div>
             </div>
@@ -134,6 +126,7 @@
 <script>
 let menuPrices = {};
 let selectedItems = {};
+const taxRate = {{ $taxRate }};
 
 // Initialize menu prices
 @foreach($categories as $category)
@@ -176,19 +169,19 @@ function updateTotal() {
         }
     });
     
-    // Update total display
-    const totalWithTax = total + (total * 0.1);
-    document.getElementById('totalAmount').textContent = 'Rp' + totalWithTax.toLocaleString('id-ID');
+    // Calculate tax and final total
+    const taxAmount = total * (taxRate / 100);
+    const totalWithTax = total + taxAmount;
     
     // Update order summary
-    updateOrderSummary();
+    updateOrderSummary(total, taxAmount, totalWithTax);
     
     // Enable/disable submit button
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = itemCount === 0;
 }
 
-function updateOrderSummary() {
+function updateOrderSummary(subtotal, taxAmount, totalWithTax) {
     const summary = document.getElementById('orderSummary');
     
     if (Object.keys(selectedItems).length === 0) {
@@ -197,6 +190,8 @@ function updateOrderSummary() {
     }
     
     let summaryHTML = '<div class="row">';
+    
+    // List items
     Object.keys(selectedItems).forEach(menuId => {
         const item = selectedItems[menuId];
         summaryHTML += `
@@ -208,6 +203,39 @@ function updateOrderSummary() {
             </div>
         `;
     });
+    
+    summaryHTML += '<hr class="my-2">';
+    
+    // Subtotal
+    summaryHTML += `
+        <div class="col-12 mb-1">
+            <div class="d-flex justify-content-between fw-bold">
+                <span>Total Pesanan</span>
+                <span>Rp${subtotal.toLocaleString('id-ID')}</span>
+            </div>
+        </div>
+    `;
+    
+    // Tax
+    summaryHTML += `
+        <div class="col-12 mb-1">
+            <div class="d-flex justify-content-between text-muted">
+                <span>Pajak ${taxRate}%</span>
+                <span>Rp${taxAmount.toLocaleString('id-ID')}</span>
+            </div>
+        </div>
+    `;
+    
+    // Final Total
+    summaryHTML += `
+        <div class="col-12 mt-2">
+            <div class="d-flex justify-content-between fw-bold text-dark fs-5">
+                <span>Total Bayar</span>
+                <span>Rp${totalWithTax.toLocaleString('id-ID')}</span>
+            </div>
+        </div>
+    `;
+    
     summaryHTML += '</div>';
     
     summary.innerHTML = summaryHTML;
