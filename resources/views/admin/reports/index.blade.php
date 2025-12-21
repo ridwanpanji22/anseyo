@@ -59,8 +59,11 @@
                             <button type="submit" class="btn btn-primary me-2">
                                 <i class="bi bi-search"></i> Filter
                             </button>
-                            <a href="{{ route('admin.reports.index') }}" class="btn btn-secondary">
+                            <a href="{{ route('admin.reports.index') }}" class="btn btn-secondary me-2">
                                 <i class="bi bi-arrow-clockwise"></i> Reset
+                            </a>
+                            <a href="{{ route('admin.reports.export-pdf', request()->all()) }}" class="btn btn-danger" target="_blank">
+                                 Export PDF
                             </a>
                         </div>
                     </form>
