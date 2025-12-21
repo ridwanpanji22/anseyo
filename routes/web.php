@@ -35,6 +35,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Menu Management
     Route::resource('menu', \App\Http\Controllers\Admin\MenuController::class);
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
+    Route::resource('discounts', \App\Http\Controllers\Admin\DiscountController::class);
     
     // Order Management
     Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class);
@@ -71,6 +72,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('/orders/{order}/cancel', [\App\Http\Controllers\KitchenController::class, 'cancel'])->name('orders.cancel');
         Route::get('/orders/by-status', [\App\Http\Controllers\KitchenController::class, 'getOrdersByStatus'])->name('orders.by-status');
         Route::get('/orders/{order}/show', [\App\Http\Controllers\KitchenController::class, 'showOrder'])->name('orders.show');
+        
+        // Menu Availability
+        Route::get('/menus', [\App\Http\Controllers\KitchenController::class, 'menuList'])->name('menus.index');
+        Route::patch('/menus/{menu}/toggle', [\App\Http\Controllers\KitchenController::class, 'toggleAvailability'])->name('menus.toggle');
     });
 
     // Cashier Dashboard - Allow cashier and admin roles

@@ -21,6 +21,8 @@ class Order extends Model
         'payment_status',
         'subtotal',
         'tax',
+        'discount_amount',
+        'discount_id',
         'total',
         'amount_paid',
         'remaining_amount',
@@ -42,6 +44,7 @@ class Order extends Model
     protected $casts = [
         'subtotal' => 'decimal:2',
         'tax' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
         'total' => 'decimal:2',
         'amount_received' => 'decimal:2',
         'change_amount' => 'decimal:2',
@@ -96,12 +99,36 @@ class Order extends Model
         $this->loadMissing('orderItems');
 
         $subtotal = $this->orderItems->sum('subtotal');
+        
+        // Calculate Discount
+        $discountAmount = 0;
+        $discountId = null;
+        
+        // Find applicable discount
+        $activeDiscount = \App\Models\Discount::where('is_active', true)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->where('min_purchase', '<=', $subtotal)
+            ->orderBy('value', 'desc') // Apply the highest discount if multiple exist
+            ->first();
+            
+        if ($activeDiscount) {
+            $discountAmount = $subtotal * ($activeDiscount->value / 100);
+            $discountId = $activeDiscount->id;
+        }
+
         $taxRate = (float) Setting::get('tax_rate', 10);
-        $tax = $subtotal * ($taxRate / 100);
-        $total = $subtotal + $tax;
+        
+        // Tax calculation: (Subtotal - Discount) * TaxRate
+        $taxableAmount = max(0, $subtotal - $discountAmount);
+        $tax = $taxableAmount * ($taxRate / 100);
+        
+        $total = $taxableAmount + $tax;
         
         $this->update([
             'subtotal' => $subtotal,
+            'discount_amount' => $discountAmount,
+            'discount_id' => $discountId,
             'tax' => $tax,
             'total' => $total,
         ]);
@@ -129,5 +156,10 @@ class Order extends Model
     public function scopeReady($query)
     {
         return $query->where('status', 'ready');
+    }
+
+    public function discount(): BelongsTo
+    {
+        return $this->belongsTo(Discount::class);
     }
 }

@@ -164,8 +164,14 @@
                 <span>Subtotal:</span>
                 <span>Rp {{ number_format($order->subtotal, 0, ',', '.') }}</span>
             </div>
+            @if($order->discount_amount > 0)
             <div class="total-row">
-                <span>Pajak (11%):</span>
+                <span>Diskon:</span>
+                <span>-Rp {{ number_format($order->discount_amount, 0, ',', '.') }}</span>
+            </div>
+            @endif
+            <div class="total-row">
+                <span>Pajak:</span>
                 <span>Rp {{ number_format($order->tax, 0, ',', '.') }}</span>
             </div>
             <div class="total-row" style="font-weight: bold; border-top: 1px solid #000; padding-top: 3px;">

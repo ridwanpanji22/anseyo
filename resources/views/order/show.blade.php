@@ -176,8 +176,14 @@
                                 <td>Subtotal:</td>
                                 <td class="text-end">Rp{{ number_format($order->subtotal) }}</td>
                             </tr>
+                            @if($order->discount_amount > 0)
                             <tr>
-                                <td>Pajak ({{ $taxRate }}%):</td>
+                                <td class="text-success">Diskon:</td>
+                                <td class="text-end text-success">-Rp{{ number_format($order->discount_amount) }}</td>
+                            </tr>
+                            @endif
+                            <tr>
+                                <td>Pajak (PPN) ({{ $taxRate }}%):</td>
                                 <td class="text-end">Rp{{ number_format($order->tax) }}</td>
                             </tr>
                             <tr class="border-top">

@@ -51,6 +51,9 @@
     <div class="d-flex justify-content-between align-items-center">
         <div>
             <small class="text-muted">Total: Rp {{ number_format($order->total, 0, ',', '.') }}</small>
+            @if($order->discount_amount > 0)
+                <br><small class="text-success">Diskon: -Rp {{ number_format($order->discount_amount, 0, ',', '.') }}</small>
+            @endif
             @if($paymentStatus == 'paid')
                 <br><small class="text-success">Dibayar: Rp {{ number_format($order->amount_received ?? 0, 0, ',', '.') }}</small>
                 @if($order->change_amount > 0)

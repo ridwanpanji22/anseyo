@@ -178,13 +178,26 @@ m/bni"''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
                                 <span>Manajemen Pesanan</span>
                             </a>
                         </li>
+                        
+                        <li class="sidebar-item {{ request()->routeIs('admin.discounts.*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.discounts.index') }}" class='sidebar-link'>
+                                <i class="bi bi-percent"></i>
+                                <span>Discounts</span>
+                            </a>
+                        </li>
                         @endif
                         
                         @if(auth()->user()->role == 'kitchen' || auth()->user()->role == 'admin')
-                        <li class="sidebar-item {{ request()->routeIs('kitchen.*') ? 'active' : '' }}">
+                        <li class="sidebar-item {{ request()->routeIs('kitchen.dashboard') ? 'active' : '' }}">
                             <a href="{{ route('kitchen.dashboard') }}" class='sidebar-link'>
                                 <i class="bi bi-fire"></i>
                                 <span>Dashboard Dapur</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item {{ request()->routeIs('kitchen.menus.*') ? 'active' : '' }}">
+                            <a href="{{ route('kitchen.menus.index') }}" class='sidebar-link'>
+                                <i class="bi bi-list-check"></i>
+                                <span>Menu Availability</span>
                             </a>
                         </li>
                         @endif
