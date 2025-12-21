@@ -220,7 +220,7 @@ function updateOrderSummary(subtotal, taxAmount, totalWithTax) {
     summaryHTML += `
         <div class="col-12 mb-1">
             <div class="d-flex justify-content-between text-muted">
-                <span>Pajak ${taxRate}%</span>
+                <span>Pajak (PPN) ${taxRate}%</span>
                 <span>Rp${taxAmount.toLocaleString('id-ID')}</span>
             </div>
         </div>
