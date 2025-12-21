@@ -181,4 +181,22 @@ class KitchenController extends Controller
             $table->update(['status' => 'available']);
         }
     }
+
+    /**
+     * Display menu list for availability management.
+     */
+    public function menuList()
+    {
+        $menus = \App\Models\Menu::with('category')->orderBy('category_id')->orderBy('name')->get();
+        return view('kitchen.menus', compact('menus'));
+    }
+
+    /**
+     * Toggle menu availability.
+     */
+    public function toggleAvailability(\App\Models\Menu $menu)
+    {
+        $menu->update(['is_available' => !$menu->is_available]);
+        return back()->with('success', 'Menu availability updated.');
+    }
 }
