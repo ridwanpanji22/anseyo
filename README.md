@@ -18,73 +18,79 @@ Pastikan server atau komputer lokal Anda memenuhi persyaratan berikut:
 - **Node.js & NPM**: Untuk mengelola aset frontend (Vite)
 - **Database**: SQLite (default) atau MySQL/MariaDB
 
-## Cara Instalasi
+## Cara Instalasi (Windows dengan Laragon 6.0)
 
-Ikuti langkah-langkah berikut untuk menjalankan proyek di komputer lokal Anda:
+Ikuti langkah-langkah berikut untuk menjalankan proyek menggunakan **Laragon 6.0**:
 
-1.  **Clone Repository**
+1.  **Persiapan Laragon**
+    - Pastikan Laragon sudah berjalan (Start All).
+    - Pastikan service **Apache** (atau Nginx) dan **MySQL** aktif.
+
+2.  **Clone Repository**
+    Buka Terminal (Cmder) di Laragon, lalu masuk ke folder `www`:
     ```bash
+    cd C:\laragon\www
     git clone https://github.com/ridwanpanji22/anseyo.git
     cd anseyo
     ```
 
-2.  **Install Dependency PHP**
+3.  **Install Dependency**
+    Jalankan perintah berikut secara berurutan:
     ```bash
     composer install
-    ```
-
-3.  **Install Dependency Frontend**
-    ```bash
     npm install
     ```
 
 4.  **Setup Environment**
-    Salin file konfigurasi `.env.example` menjadi `.env`:
+    Salin file konfigurasi `.env`:
     ```bash
     cp .env.example .env
     ```
-
-5.  **Generate Application Key**
+    Generate Application Key:
     ```bash
     php artisan key:generate
     ```
 
-6.  **Konfigurasi Database**
-    Secara default, proyek ini menggunakan SQLite. Pastikan file database tersedia (jika menggunakan SQLite):
-    ```bash
-    touch database/database.sqlite
-    ```
-    *(Jika menggunakan MySQL, sesuaikan `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, dan `DB_PASSWORD` di file `.env`)*
-
-7.  **Konfigurasi URL Barcode**
-    Agar QR Code yang digenerate dapat dipindai dengan benar oleh pelanggan (terutama jika diakses dari HP dalam jaringan yang sama), Anda **wajib** mengubah `APP_URL` di file `.env` menggunakan IP Address komputer Anda, bukan `localhost`.
-
-    Buka file `.env` dan ubah baris berikut:
+5.  **Konfigurasi Database**
+    - Buka **HeidiSQL** (tombol "Database" di Laragon).
+    - Buat database baru dengan nama `anseyo`.
+    - Buka file `.env` dan sesuaikan konfigurasi database (Default Laragon: user `root`, password kosong):
     ```dotenv
-    APP_URL=http://192.168.x.x:8000
+    DB_CONNECTION=mysql
+    DB_HOST=127.0.0.1
+    DB_PORT=3306
+    DB_DATABASE=anseyo
+    DB_USERNAME=root
+    DB_PASSWORD=
     ```
-    *Ganti `192.168.x.x` dengan IP Address lokal komputer Anda.*
 
-8.  **Migrasi dan Seeding Database**
-    Jalankan perintah berikut untuk membuat tabel dan mengisi data awal (akun default, menu contoh, meja):
+6.  **Konfigurasi URL (Penting untuk QR Code)**
+    Agar QR Code dapat dipindai oleh HP pelanggan dalam jaringan WiFi yang sama:
+    - Cek IP Address komputer Anda (buka terminal, ketik `ipconfig`).
+    - Buka file `.env` dan ubah `APP_URL` menjadi IP Address tersebut.
+    ```dotenv
+    # Contoh jika IP komputer Anda 192.168.1.10
+    APP_URL=http://192.168.1.10
+    ```
+    *(Catatan: Jika menggunakan fitur "Pretty URL" Laragon seperti `http://anseyo.test`, HP mungkin tidak bisa mengaksesnya kecuali ada konfigurasi DNS lokal. Menggunakan IP Address lebih aman untuk testing QR Code).*
+
+7.  **Migrasi dan Seeding**
+    Isi database dengan tabel dan data awal:
     ```bash
     php artisan migrate:fresh --seed
     ```
 
 ## Menjalankan Aplikasi
 
-1.  **Jalankan Server Laravel**
-    ```bash
-    php artisan serve --host=0.0.0.0 --port=8000
-    ```
+1.  **Akses Website**
+    - Jika menggunakan IP Address di `.env`, akses via browser: `http://192.168.x.x/anseyo/public` (atau sesuaikan dengan konfigurasi Virtual Host Laragon jika sudah diset ke IP).
+    - Atau jika hanya di laptop lokal: `http://anseyo.test`.
 
 2.  **Jalankan Vite (Frontend)**
-    Buka terminal baru dan jalankan:
+    Agar tampilan (CSS/JS) termuat dengan benar saat development:
     ```bash
     npm run dev
     ```
-
-3.  Akses aplikasi melalui browser di alamat yang sudah diset di `APP_URL` (contoh: `http://192.168.1.5:8000`).
 
 ## Akun Default (Login)
 
