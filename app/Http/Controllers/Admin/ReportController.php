@@ -122,10 +122,11 @@ class ReportController extends Controller
             ->select(
                 DB::raw('DATE(orders.created_at) as order_date'),
                 'order_items.menu_name',
+                'order_items.price',
                 DB::raw('SUM(order_items.quantity) as total_qty'),
                 DB::raw('SUM(order_items.subtotal) as total_revenue')
             )
-            ->groupBy(DB::raw('DATE(orders.created_at)'), 'order_items.menu_name')
+            ->groupBy(DB::raw('DATE(orders.created_at)'), 'order_items.menu_name', 'order_items.price')
             ->orderBy('order_date', 'desc')
             ->orderBy('total_qty', 'desc');
 

@@ -53,9 +53,10 @@
         /* Column Widths (Optional adjustment) */
         .col-no { width: 5%; }
         .col-date { width: 15%; }
-        .col-name { width: 40%; }
+        .col-name { width: 30%; }
+        .col-price { width: 15%; }
         .col-qty { width: 10%; }
-        .col-total { width: 30%; }
+        .col-total { width: 25%; }
     </style>
 </head>
 <body>
@@ -72,6 +73,7 @@
                 <th class="col-no">No</th>
                 <th class="col-date">Tanggal</th>
                 <th class="col-name">Item Menu</th>
+                <th class="col-price">Harga Item</th>
                 <th class="col-qty">Qty Terjual</th>
                 <th class="col-total">Total Pendapatan</th>
             </tr>
@@ -82,6 +84,7 @@
                 <td class="text-center">{{ $index + 1 }}</td>
                 <td class="text-center">{{ \Carbon\Carbon::parse($item->order_date)->format('d/m/Y') }}</td>
                 <td class="text-left">{{ $item->menu_name }}</td>
+                <td class="text-right">Rp {{ number_format($item->price, 0, ',', '.') }}</td>
                 <td class="text-center">{{ number_format($item->total_qty) }}</td>
                 <td class="text-right">
                     Rp {{ number_format($item->total_revenue, 0, ',', '.') }}
@@ -89,13 +92,13 @@
             </tr>
             @empty
             <tr>
-                <td colspan="5" class="text-center">Tidak ada data penjualan pada periode ini.</td>
+                <td colspan="6" class="text-center">Tidak ada data penjualan pada periode ini.</td>
             </tr>
             @endforelse
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="3" class="text-center">Total</td>
+                <td colspan="4" class="text-center">Total</td>
                 <td class="text-center">{{ number_format($totalQty) }}</td>
                 <td class="text-right">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</td>
             </tr>
